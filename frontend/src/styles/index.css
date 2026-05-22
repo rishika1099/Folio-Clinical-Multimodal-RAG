@@ -1,0 +1,124 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: light;
+  --grain: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='n'><feTurbulence baseFrequency='0.92' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0.025 0'/></filter><rect width='180' height='180' filter='url(%23n)'/></svg>");
+}
+
+html, body, #root { height: 100%; }
+body {
+  font-feature-settings: "ss01", "cv11";
+  background:
+    radial-gradient(1100px 500px at 90% -10%, rgba(122,171,165,0.18), transparent 55%),
+    radial-gradient(900px 480px at -10% 110%, rgba(225,160,110,0.14), transparent 55%),
+    radial-gradient(700px 400px at 60% 100%, rgba(156,145,192,0.10), transparent 60%),
+    var(--grain),
+    #fbf9f3;
+}
+
+/* tabular numerals everywhere data lives */
+.num { font-variant-numeric: tabular-nums; }
+
+/* card surface */
+.card {
+  @apply rounded-2xl border border-ink-700 bg-white shadow-card transition;
+}
+.card:hover { box-shadow: var(--tw-shadow-cardHover, 0 12px 32px -12px rgba(28,31,42,0.14)); }
+.card-pad { @apply p-5; }
+
+.card-soft {
+  @apply rounded-2xl border border-ink-700/70 bg-ink-900/60 backdrop-blur-sm;
+}
+
+/* tag chip */
+.chip {
+  @apply inline-flex items-center gap-1.5 rounded-full border border-ink-700 bg-white px-2.5 py-0.5 text-[11px] font-medium tracking-wide text-ink-200;
+}
+.chip-accent { @apply border-accent/30 bg-accent-softer text-accent-ink; }
+.chip-warn   { @apply border-warn/30 bg-warn-softer text-warn-ink; }
+.chip-alert  { @apply border-alert/40 bg-alert-softer text-alert-ink; }
+.chip-good   { @apply border-good/30 bg-good-softer text-good-ink; }
+.chip-info   { @apply border-info/30 bg-info-softer text-info-ink; }
+
+/* nav link */
+.navlink {
+  @apply relative flex items-center gap-2.5 rounded-xl px-3 py-2 text-[13.5px] font-medium text-ink-200 transition;
+}
+.navlink:hover { @apply bg-ink-800/70 text-ink-50; }
+.navlink.is-active {
+  @apply text-ink-50 bg-gradient-to-r from-accent-soft to-transparent;
+}
+.navlink.is-active::before {
+  content: "";
+  position: absolute;
+  left: 0; top: 22%; bottom: 22%; width: 2px;
+  background: linear-gradient(180deg, #9bc7c1, #4f8a83);
+  border-radius: 2px;
+}
+
+/* button */
+.btn {
+  @apply inline-flex items-center justify-center gap-2 rounded-xl px-3.5 py-2 text-sm font-medium transition;
+}
+.btn-primary {
+  @apply bg-accent text-white shadow-glow;
+}
+.btn-primary:hover { @apply bg-accent-deep; }
+.btn-ghost {
+  @apply bg-white border border-ink-700 text-ink-100 hover:bg-ink-850;
+}
+.btn-soft {
+  @apply bg-accent-softer border border-accent/30 text-accent-ink hover:bg-accent-soft;
+}
+
+/* skeleton */
+.skel {
+  background: linear-gradient(90deg, rgba(28,31,42,0.04) 0%, rgba(28,31,42,0.10) 50%, rgba(28,31,42,0.04) 100%);
+  background-size: 200% 100%;
+  animation: stream 1.6s linear infinite;
+  border-radius: 16px;
+}
+
+/* shimmer used while streaming */
+.streaming-bar {
+  background-image: linear-gradient(90deg, transparent, rgba(122,171,165,.7), transparent);
+  background-size: 50% 100%;
+  background-repeat: no-repeat;
+  animation: stream 1.4s linear infinite;
+}
+
+/* dotted background panel */
+.bg-dots {
+  background-image: radial-gradient(circle at 1px 1px, rgba(28,31,42,0.06) 1px, transparent 0);
+  background-size: 18px 18px;
+}
+
+/* divider */
+.div-h { @apply h-px w-full bg-ink-700/80; }
+
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(28,31,42,0.10); border-radius: 999px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(28,31,42,0.18); }
+
+/* code blocks */
+pre, code { @apply font-mono; }
+
+/* inputs */
+.input {
+  @apply w-full rounded-xl bg-white border border-ink-700 px-3.5 py-2.5 text-sm text-ink-100 placeholder:text-ink-400 focus:outline-none focus:border-accent/60 focus:ring-2 focus:ring-accent/20 transition;
+}
+textarea.input { @apply leading-relaxed; }
+
+/* kbd */
+kbd {
+  @apply font-mono rounded border border-ink-700 bg-white px-1.5 py-[1px] text-[10.5px] text-ink-200;
+}
+
+/* selection */
+::selection { background: rgba(122,171,165,0.30); color: #1c1f2a; }
+
+/* link */
+a.link { @apply text-accent-deep hover:text-accent-ink underline-offset-2 hover:underline; }

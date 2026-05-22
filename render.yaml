@@ -1,0 +1,34 @@
+# Render blueprint — one-click backend deploy.
+# After pushing to GitHub, go to https://dashboard.render.com/select-repo
+# and pick this repo; Render reads this file and provisions everything.
+services:
+  - type: web
+    name: folio-backend
+    runtime: docker
+    repo: https://github.com/REPLACE_ME/folio
+    rootDir: backend
+    dockerfilePath: ./Dockerfile
+    plan: free
+    autoDeploy: true
+    healthCheckPath: /
+    envVars:
+      - key: MONGO_URL
+        sync: false                # set in Render dashboard from Atlas connection string
+      - key: MONGO_DB
+        value: folio
+      - key: REDIS_URL
+        sync: false                # set from Upstash redis://… URL
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: CORS_ORIGINS
+        sync: false                # set to your Vercel URL, e.g. https://folio.vercel.app
+      - key: APP_PASSWORD
+        sync: false                # the password your /login screen will ask for
+      - key: JWT_SECRET
+        generateValue: true        # Render generates a strong random value once
+      - key: LOG_LEVEL
+        value: INFO
