@@ -1,0 +1,30 @@
+Folio — Clinical Multimodal RAG
+Copyright (c) 2026 Rishika. All rights reserved.
+
+The source code in this repository is published for portfolio, review,
+and evaluation purposes only. You may read it. You may not:
+
+  * Use it, in whole or in part, in any product, service, or research
+    artefact, commercial or non-commercial;
+  * Copy, modify, merge, publish, distribute, sublicense, or sell any
+    portion of it;
+  * Train or fine-tune machine-learning models on it;
+  * Create derivative works from it.
+
+Anything not expressly permitted above is reserved. To request a licence
+that permits use, contact the copyright holder in writing.
+
+Inclusion of third-party dependencies (listed in backend/requirements.txt
+and frontend/package.json) is governed by those projects' own licences;
+this notice applies solely to the original work in this repository.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE, AND NONINFRINGEMENT. IN NO EVENT SHALL
+THE AUTHOR BE LIABLE FOR ANY CLAIM, DAMAGES, OR OTHER LIABILITY ARISING
+FROM, OUT OF, OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+DEALINGS IN THE SOFTWARE.
+
+Folio is a portfolio project and is not a medical device. Nothing in this
+repository constitutes medical advice. Decisions about your care belong
+with a licensed clinician.

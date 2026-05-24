@@ -4,6 +4,8 @@ Local-first multimodal medical intelligence app. Ingests PDFs, photos of paper r
 
 > **Not medical advice.** Folio surfaces patterns. Decisions about your care belong with a licensed clinician.
 
+> **Licence.** Copyright © 2026 Rishika. All rights reserved. This repository is published for portfolio review only — see [LICENSE](./LICENSE). No use, copy, modification, redistribution, or training of ML models on this code is permitted without written permission.
+
 ---
 
 ## Quick start
