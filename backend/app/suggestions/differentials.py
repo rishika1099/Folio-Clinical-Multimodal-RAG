@@ -24,9 +24,9 @@ Be conservative. Do not list extremely rare conditions unless evidence strongly 
 """
 
 
-async def generate_differentials(report_id: str) -> list[Suggestion]:
+async def generate_differentials(report_id: str, user_id: str) -> list[Suggestion]:
     db = get_db()
-    report = await db.reports.find_one({"report_id": report_id})
+    report = await db.reports.find_one({"user_id": user_id, "report_id": report_id})
     if not report:
         return []
 
@@ -34,7 +34,9 @@ async def generate_differentials(report_id: str) -> list[Suggestion]:
     if not symptoms:
         return []
 
-    active_dx = await db.diagnoses_master.find({"status": "active"}).to_list(length=20)
+    active_dx = await db.diagnoses_master.find(
+        {"user_id": user_id, "status": "active"}
+    ).to_list(length=20)
 
     user = json.dumps({
         "current_symptoms": symptoms,

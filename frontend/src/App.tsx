@@ -9,11 +9,13 @@ import SuggestionsPage from "./pages/Suggestions";
 import ReportDetailPage from "./pages/ReportDetail";
 import DevPage from "./pages/Dev";
 import LoginPage from "./pages/Login";
+import SignupPage from "./pages/Signup";
 
 export default function App() {
   return (
     <Routes>
-      <Route path="/login" element={<LoginPage />} />
+      <Route path="/login"  element={<LoginPage />} />
+      <Route path="/signup" element={<SignupPage />} />
       <Route path="*" element={
         <AuthGuard>
           <Shell>

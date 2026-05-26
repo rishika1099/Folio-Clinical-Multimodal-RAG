@@ -17,9 +17,11 @@ CANNED = {
 }
 
 
-async def generate_lifestyle(report_id: str) -> list[Suggestion]:
+async def generate_lifestyle(report_id: str, user_id: str) -> list[Suggestion]:
     db = get_db()
-    actives = await db.diagnoses_master.find({"status": "active"}).to_list(length=10)
+    actives = await db.diagnoses_master.find(
+        {"user_id": user_id, "status": "active"}
+    ).to_list(length=10)
     out: list[Suggestion] = []
 
     for d in actives:

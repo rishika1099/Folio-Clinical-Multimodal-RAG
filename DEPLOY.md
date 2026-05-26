@@ -77,13 +77,13 @@ git push -u origin main
    | `ANTHROPIC_API_KEY` | your Anthropic key |
    | `OPENAI_API_KEY` | your OpenAI key |
    | `GEMINI_API_KEY` | your Gemini key |
-   | `APP_PASSWORD` | **the password you'll type on the /login screen.** Pick something long. |
    | `JWT_SECRET` | Render auto-generates this from `render.yaml`. Leave the generated value. |
+   | `ALLOW_SIGNUP` | `true` (default) — anyone can sign up. After you and your family have registered, switch to `false` to lock the instance. |
    | `CORS_ORIGINS` | leave blank for now — fill in step 5 once you have the Vercel URL |
 
    Click **Save Changes**. Render redeploys automatically.
 
-   ⚠️ If you skip `APP_PASSWORD`, auth is **disabled** and anyone hitting your URL can read your record. Always set it for a public deploy.
+   Auth is always on; users register via the `/signup` page and log in via `/login`. There's no shared password — each person has their own account and their own private record.
 
 5. Note the service URL — looks like `https://folio-backend.onrender.com`. Test it:
    ```bash

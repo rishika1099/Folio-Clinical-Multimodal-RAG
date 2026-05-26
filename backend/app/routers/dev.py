@@ -1,7 +1,9 @@
 """Dev-panel endpoints. Latency stats, model routing visibility."""
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 
+from ..auth import require_auth
 from ..db import get_db
+from ..schemas import UserPublic
 from ..models.router import (
     ROUTE_EXTRACT_FALLBACK,
     ROUTE_EXTRACT_PRIMARY,
@@ -37,11 +39,11 @@ def routes():
 
 
 @router.get("/latency")
-async def latency_stats(limit: int = 50):
+async def latency_stats(limit: int = 50, user: UserPublic = Depends(require_auth)):
     """Aggregates per-stage latency from the last N reports."""
     db = get_db()
     rows = await db.reports.find(
-        {"latency_ms": {"$exists": True}},
+        {"user_id": user.user_id, "latency_ms": {"$exists": True}},
         {"_id": 0, "report_id": 1, "uploaded_at": 1, "input_type": 1, "model_used": 1, "latency_ms": 1},
     ).sort("uploaded_at", -1).limit(limit).to_list(length=limit)
 
@@ -69,6 +71,8 @@ async def latency_stats(limit: int = 50):
 
 @router.get("/health")
 async def health():
+    """Public health check — used by external uptime monitors / cron pings.
+    Intentionally unauthenticated."""
     db = get_db()
     try:
         await db.command("ping")

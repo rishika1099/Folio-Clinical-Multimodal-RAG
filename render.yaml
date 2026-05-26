@@ -25,9 +25,9 @@ services:
         sync: false
       - key: CORS_ORIGINS
         sync: false                # set to your Vercel URL, e.g. https://folio.vercel.app
-      - key: APP_PASSWORD
-        sync: false                # the password your /login screen will ask for
       - key: JWT_SECRET
         generateValue: true        # Render generates a strong random value once
+      - key: ALLOW_SIGNUP
+        value: "true"              # set to "false" after your users have registered to lock the instance
       - key: LOG_LEVEL
         value: INFO

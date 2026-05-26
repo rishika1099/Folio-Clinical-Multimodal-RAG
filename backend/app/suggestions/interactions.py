@@ -28,9 +28,9 @@ def _norm(name: str) -> str:
     return name.lower().split()[0] if name else ""
 
 
-async def check_interactions(report_id: str) -> list[Suggestion]:
+async def check_interactions(report_id: str, user_id: str) -> list[Suggestion]:
     db = get_db()
-    meds = await db.medications_master.find({"active": True}).to_list(length=50)
+    meds = await db.medications_master.find({"user_id": user_id, "active": True}).to_list(length=50)
     names = [_norm(m.get("display_name") or m.get("name", "")) for m in meds]
     names = [n for n in names if n]
 

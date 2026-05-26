@@ -10,9 +10,10 @@ Run with:
 import asyncio
 from datetime import datetime, timedelta
 
+from .auth import create_user, find_user_by_username
 from .db import ensure_indexes, get_db
 from .pipeline.persist import persist_report
-from .rag.store import reindex_all
+from .rag.store import reindex_user
 from .schemas import (
     Diagnosis, ExtractedReport, Lab, Medication, RedFlag, Symptom, Vital,
 )
@@ -322,25 +323,38 @@ SEED: list[ExtractedReport] = [
 ]
 
 
+DEMO_USERNAME = "demo"
+DEMO_PASSWORD = "demo1234"
+
+
 async def main():
     await ensure_indexes()
     db = get_db()
 
-    # Reset collections so seed is reproducible.
+    # Find or create the demo user; everything is scoped to them.
+    existing = await find_user_by_username(DEMO_USERNAME)
+    if existing:
+        user_id = existing.user_id
+    else:
+        user = await create_user(DEMO_USERNAME, DEMO_PASSWORD, display_name="Demo Patient")
+        user_id = user.user_id
+        print(f"created demo user: username='{DEMO_USERNAME}' password='{DEMO_PASSWORD}'")
+
+    # Reset this user's collections so seed is reproducible.
     for coll in ("reports", "diagnoses_master", "medications_master",
                   "vitals_timeline", "labs_timeline",
                   "suggestions", "dismissed_suggestions",
-                  "report_embeddings"):
-        await db[coll].delete_many({})
+                  "report_embeddings", "consensus_meta"):
+        await db[coll].delete_many({"user_id": user_id})
 
     # Insert in chronological order so master collections reflect the latest state.
     for r in sorted(SEED, key=lambda x: x.uploaded_at):
-        await persist_report(r)
+        await persist_report(r, user_id=user_id)
         print(f"  · {r.uploaded_at[:10]}  {r.input_type:5s}  {r.raw_summary[:64]}")
 
     # Mark resolved earlier-stage diagnoses (pre-diabetes superseded by T2DM).
     await db.diagnoses_master.update_one(
-        {"condition": "pre-diabetes"},
+        {"user_id": user_id, "condition": "pre-diabetes"},
         {"$set": {"status": "resolved"}},
     )
 
@@ -348,18 +362,18 @@ async def main():
     # has trends, interactions, follow-ups, lifestyle, and risk content.
     latest = max(SEED, key=lambda x: x.uploaded_at)
     print(f"\nGenerating suggestions for latest report ({latest.uploaded_at[:10]})…")
-    n = await run_all(latest.report_id)
+    n = await run_all(latest.report_id, user_id=user_id)
     print(f"  → {len(n)} suggestions inserted")
 
     # Build the RAG index so chat retrieval has content from day one.
     print("\nBuilding RAG index…")
     try:
-        idx_n = await reindex_all()
+        idx_n = await reindex_user(user_id)
         print(f"  → {idx_n} report embeddings stored")
     except Exception as exc:
         print(f"  → embedding skipped ({exc}); chat will fall back to snapshot only")
 
-    print("\nSeed complete.")
+    print(f"\nSeed complete. Sign in at /login with username '{DEMO_USERNAME}' password '{DEMO_PASSWORD}'.")
 
 
 if __name__ == "__main__":

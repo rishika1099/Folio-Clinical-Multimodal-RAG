@@ -17,14 +17,15 @@ GUIDELINE_RECHECK_DAYS = {
 }
 
 
-async def generate_followups(report_id: str) -> list[Suggestion]:
+async def generate_followups(report_id: str, user_id: str) -> list[Suggestion]:
     db = get_db()
     now = datetime.utcnow()
     out: list[Suggestion] = []
 
     for test, days in GUIDELINE_RECHECK_DAYS.items():
         last = await db.labs_timeline.find_one(
-            {"test": {"$regex": test, "$options": "i"}}, sort=[("recorded_at", -1)]
+            {"user_id": user_id, "test": {"$regex": test, "$options": "i"}},
+            sort=[("recorded_at", -1)],
         )
         if not last:
             continue

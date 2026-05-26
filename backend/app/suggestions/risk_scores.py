@@ -16,23 +16,27 @@ def _parse_bp(value: str) -> tuple[int, int] | None:
         return None
 
 
-async def latest_vital(db, vtype: str):
-    return await db.vitals_timeline.find_one({"type": vtype}, sort=[("recorded_at", -1)])
+async def latest_vital(db, vtype: str, user_id: str):
+    return await db.vitals_timeline.find_one(
+        {"user_id": user_id, "type": vtype}, sort=[("recorded_at", -1)]
+    )
 
 
-async def latest_lab(db, regex: str):
-    return await db.labs_timeline.find_one({"test": {"$regex": regex, "$options": "i"}},
-                                           sort=[("recorded_at", -1)])
+async def latest_lab(db, regex: str, user_id: str):
+    return await db.labs_timeline.find_one(
+        {"user_id": user_id, "test": {"$regex": regex, "$options": "i"}},
+        sort=[("recorded_at", -1)],
+    )
 
 
-async def compute_risk_scores(report_id: str) -> list[Suggestion]:
+async def compute_risk_scores(report_id: str, user_id: str) -> list[Suggestion]:
     db = get_db()
     out: list[Suggestion] = []
 
     # Cardiac risk indicator (very simplified — NOT ASCVD).
-    bp = await latest_vital(db, "bp")
-    ldl = await latest_lab(db, "ldl")
-    a1c = await latest_lab(db, "a1c")
+    bp = await latest_vital(db, "bp", user_id)
+    ldl = await latest_lab(db, "ldl", user_id)
+    a1c = await latest_lab(db, "a1c", user_id)
 
     factors = []
     score = 0
@@ -77,7 +81,7 @@ async def compute_risk_scores(report_id: str) -> list[Suggestion]:
         ))
 
     # CKD indicator
-    cr = await latest_lab(db, "creatinine")
+    cr = await latest_lab(db, "creatinine", user_id)
     if cr:
         try:
             v = float(cr["value"])

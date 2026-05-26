@@ -45,8 +45,8 @@ services:
       - OPENAI_API_KEY=${OPENAI_API_KEY:-}
       - GEMINI_API_KEY=${GEMINI_API_KEY:-}
       - LOG_LEVEL=INFO
-      - APP_PASSWORD=${APP_PASSWORD:-}
       - JWT_SECRET=${JWT_SECRET:-dev-only-change-me-in-prod}
+      - ALLOW_SIGNUP=${ALLOW_SIGNUP:-true}
       - CORS_ORIGINS=${CORS_ORIGINS:-*}
     ports:
       - "8000:8000"

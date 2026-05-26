@@ -17,12 +17,11 @@ class Settings(BaseSettings):
     cors_origins: str = "*"
 
     # ─── Auth ──────────────────────────────────────────────────────────────
-    # If app_password is unset, auth is OFF (single-machine local dev mode).
-    # If app_password is set, every API request must carry a Bearer JWT
-    # obtained by POSTing the password to /api/auth/login.
-    app_password: str = ""
+    # Multi-user. Anyone can hit POST /api/auth/register unless
+    # allow_signup is set to False (lock the instance to existing users).
     jwt_secret:   str = "dev-only-change-me-in-prod"
     jwt_ttl_days: int = 30
+    allow_signup: bool = True
 
     extraction_timeout_s: float = 8.0
     suggestion_timeout_s: float = 20.0

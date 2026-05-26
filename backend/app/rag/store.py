@@ -1,12 +1,7 @@
 """
-Vector store for report passages. Brute-force cosine over Mongo —
-fine for a single-user workload (<1000 reports). If the corpus ever
-grew, swap to Atlas Vector Search or pgvector without changing the API.
-
-Each report is split into one or more "passages" (a passage is the
-raw_summary + structured-data digest). On chat we retrieve the top-k
-passages by cosine similarity to the query embedding, then inject the
-matched passages into the system prompt as cited evidence.
+Per-user vector store. Brute-force cosine over Mongo — fine for a personal
+workload (<1000 reports per user). Retrieval is hard-filtered by user_id
+so chat never sees other users' passages.
 """
 import time
 from datetime import datetime
@@ -17,7 +12,6 @@ from .embeddings import cosine, embed_many, embed_one
 
 
 def _digest(report: dict) -> str:
-    """One self-contained text block representing the report."""
     parts: list[str] = []
     parts.append(f"Report from {str(report.get('uploaded_at',''))[:10]} ({report.get('input_type','')}).")
     if report.get("raw_summary"):
@@ -38,14 +32,14 @@ def _digest(report: dict) -> str:
     return " ".join(parts)
 
 
-async def index_report(report: dict) -> None:
-    """Compute the embedding for a report and store it."""
+async def index_report(report: dict, user_id: str) -> None:
     db = get_db()
     digest = _digest(report)
     vec = await embed_one(digest)
     await db.report_embeddings.update_one(
         {"report_id": report["report_id"]},
         {"$set": {
+            "user_id": user_id,
             "report_id": report["report_id"],
             "uploaded_at": report.get("uploaded_at"),
             "input_type": report.get("input_type"),
@@ -57,18 +51,18 @@ async def index_report(report: dict) -> None:
     )
 
 
-async def reindex_all() -> int:
-    """Reindex every report — used by the seed and as an admin tool."""
+async def reindex_user(user_id: str) -> int:
     db = get_db()
-    reports = await db.reports.find({}, {"_id": 0}).to_list(length=10_000)
+    reports = await db.reports.find({"user_id": user_id}, {"_id": 0}).to_list(length=10_000)
     if not reports:
         return 0
     digests = [_digest(r) for r in reports]
     vectors = await embed_many(digests)
-    ops = []
     now = datetime.utcnow().isoformat()
+    ops = []
     for r, d, v in zip(reports, digests, vectors):
         ops.append({
+            "user_id": user_id,
             "report_id": r["report_id"],
             "uploaded_at": r.get("uploaded_at"),
             "input_type": r.get("input_type"),
@@ -76,42 +70,38 @@ async def reindex_all() -> int:
             "embedding": v,
             "indexed_at": now,
         })
-    await db.report_embeddings.delete_many({})
+    await db.report_embeddings.delete_many({"user_id": user_id})
     if ops:
         await db.report_embeddings.insert_many(ops)
     return len(ops)
 
 
-async def retrieve(query: str, k: int = 4, min_score: float = 0.18) -> list[dict]:
-    """Return the top-k report digests by cosine similarity to the query."""
+async def retrieve(query: str, user_id: str, k: int = 4, min_score: float = 0.18) -> list[dict]:
     db = get_db()
     qv = await embed_one(query)
-    cursor = db.report_embeddings.find({}, {"_id": 0})
+    cursor = db.report_embeddings.find({"user_id": user_id}, {"_id": 0})
     scored: list[tuple[float, dict]] = []
     async for doc in cursor:
         s = cosine(qv, doc.get("embedding") or [])
         if s >= min_score:
             scored.append((s, doc))
     scored.sort(key=lambda t: t[0], reverse=True)
-    out = []
-    for s, d in scored[:k]:
-        out.append({
-            "report_id": d["report_id"],
-            "uploaded_at": d.get("uploaded_at"),
-            "input_type": d.get("input_type"),
-            "digest": d["digest"],
-            "score": round(s, 4),
-        })
-    return out
+    return [{
+        "report_id": d["report_id"],
+        "uploaded_at": d.get("uploaded_at"),
+        "input_type": d.get("input_type"),
+        "digest": d["digest"],
+        "score": round(s, 4),
+    } for s, d in scored[:k]]
 
 
-async def retrieve_with_timing(query: str, k: int = 4) -> tuple[list[dict], dict]:
+async def retrieve_with_timing(query: str, user_id: str, k: int = 4) -> tuple[list[dict], dict]:
     t0 = time.perf_counter()
     qv = await embed_one(query)
     t_embed = (time.perf_counter() - t0) * 1000
     t0 = time.perf_counter()
     db = get_db()
-    cursor = db.report_embeddings.find({}, {"_id": 0})
+    cursor = db.report_embeddings.find({"user_id": user_id}, {"_id": 0})
     scored = []
     async for doc in cursor:
         s = cosine(qv, doc.get("embedding") or [])

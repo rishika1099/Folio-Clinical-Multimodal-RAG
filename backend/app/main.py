@@ -1,9 +1,8 @@
 from contextlib import asynccontextmanager
 
-from fastapi import Depends, FastAPI
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from .auth import require_auth
 from .config import settings
 from .db import ensure_indexes
 from .routers import auth, chat, consensus, dashboard, dev, ingest, suggestions
@@ -30,19 +29,18 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# /api/auth/* is intentionally NOT protected so /login can be called by an
-# unauthenticated browser. Everything else requires the bearer token.
+# /api/auth/* (register, login, status) is unauthenticated.
+# Every other router declares Depends(require_auth) on each endpoint
+# so they can read the current user and scope queries.
 app.include_router(auth.router)
-
-protected = [Depends(require_auth)]
-app.include_router(chat.router,        dependencies=protected)
-app.include_router(ingest.router,      dependencies=protected)
-app.include_router(consensus.router,   dependencies=protected)
-app.include_router(dashboard.router,   dependencies=protected)
-app.include_router(suggestions.router, dependencies=protected)
-app.include_router(dev.router,         dependencies=protected)
+app.include_router(chat.router)
+app.include_router(ingest.router)
+app.include_router(consensus.router)
+app.include_router(dashboard.router)
+app.include_router(suggestions.router)
+app.include_router(dev.router)
 
 
 @app.get("/")
 def root():
-    return {"service": "folio", "status": "ok", "auth_required": bool(settings.app_password)}
+    return {"service": "folio", "status": "ok", "allow_signup": settings.allow_signup}

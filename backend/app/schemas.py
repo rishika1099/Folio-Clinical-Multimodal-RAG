@@ -99,3 +99,17 @@ class Suggestion(BaseModel):
 class TextInputRequest(BaseModel):
     text: str
     note: str = ""
+
+
+class User(BaseModel):
+    user_id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    username: str
+    display_name: str = ""
+    password_hash: str
+    created_at: str = Field(default_factory=lambda: datetime.utcnow().isoformat())
+
+
+class UserPublic(BaseModel):
+    user_id: str
+    username: str
+    display_name: str = ""

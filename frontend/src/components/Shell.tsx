@@ -1,6 +1,6 @@
 import { NavLink, Link, useNavigate } from "react-router-dom";
 import clsx from "clsx";
-import { clearToken } from "../lib/auth";
+import { clearAuth, displayName, getUser } from "../lib/auth";
 
 const NAV = [
   { to: "/",            label: "Chat",        icon: <IconChat /> },
@@ -79,18 +79,20 @@ function Topbar() {
 }
 
 function Crumbs() {
+  const u = getUser();
   return (
     <div className="flex items-center gap-2 text-[13px]">
       <span className="text-ink-300">workspace</span>
       <span className="text-ink-400">/</span>
-      <span className="text-ink-100 font-medium">rishika</span>
+      <span className="text-ink-100 font-medium">{u?.username || "—"}</span>
     </div>
   );
 }
 
 function SignOut() {
   const nav = useNavigate();
-  const onClick = () => { clearToken(); nav("/login", { replace: true }); };
+  const u = getUser();
+  const onClick = () => { clearAuth(); nav("/login", { replace: true }); };
   return (
     <button onClick={onClick}
             className="w-full flex items-center justify-between gap-2 rounded-xl border border-ink-700 bg-white px-3 py-2 text-[12px] text-ink-200 hover:bg-ink-850 hover:text-ink-100 transition">
@@ -100,7 +102,7 @@ function SignOut() {
         </svg>
         Sign out
       </span>
-      <span className="text-[10px] text-ink-300 font-mono">rishika</span>
+      <span className="text-[10px] text-ink-300 font-mono truncate max-w-[80px]">{u?.username || "—"}</span>
     </button>
   );
 }

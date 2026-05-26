@@ -4,7 +4,7 @@ A personal medical-record companion. Drop a PDF lab report, a phone photo of a p
 
 The way personal medical history works is broken. The actual data of your care lives in PDFs in your downloads folder, photos in your camera roll, and notes in your phone. Nothing talks to anything. Every new clinic re-asks the same questions. Folio is a portfolio project that takes that mess seriously: one schema, one timeline, one place to ask.
 
-This is single-user, runs locally on Docker, and is explicitly not a medical device.
+Multi-user — sign up with a username + password, and your record is partitioned from every other user's. Runs locally on Docker, deploys free-forever. Explicitly not a medical device.
 
 ---
 
@@ -28,7 +28,8 @@ The app starts empty. Add a report from chat (drop a file or paste a report) and
 | `ANTHROPIC_API_KEY` | yes | hot-path extraction (Claude Haiku) and chat reasoning (Claude Sonnet) |
 | `OPENAI_API_KEY`    | optional | voice transcription (Whisper), embeddings, extraction fallback |
 | `GEMINI_API_KEY`    | optional | vision OCR for scanned PDFs |
-| `APP_PASSWORD`      | optional | enables JWT login. Leave blank for localhost; **always set for a public deploy.** |
+| `JWT_SECRET`        | recommended | bytes used to sign session tokens. Generate a long random value for production. |
+| `ALLOW_SIGNUP`      | optional | `true` (default) lets anyone register. Switch to `false` once your trusted users are in. |
 
 See `DEPLOY.md` for the free-tier hosting walkthrough (Render + Vercel + Atlas + Upstash).
 

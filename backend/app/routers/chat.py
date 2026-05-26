@@ -1,16 +1,16 @@
 """
 Conversational endpoint. Streams Claude Sonnet's response token-by-token
-over SSE. Every turn pulls the user's current health snapshot from Mongo
-and injects it into the system prompt so the assistant stays grounded
-in their actual record (no fabricated values, citations refer to real
-data points).
+over SSE. Every turn pulls the current user's health snapshot from Mongo
+and the top-k retrieved passages from their personal RAG index, then
+injects both into the system prompt.
 """
 import json
 from typing import AsyncIterator
 
-from fastapi import APIRouter, File, HTTPException, UploadFile
+from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
 from fastapi.responses import StreamingResponse
 
+from ..auth import require_auth
 from ..config import settings
 from ..db import get_db
 from ..models.router import (
@@ -21,25 +21,20 @@ from ..models.router import (
     transcribe_audio,
 )
 from ..rag.store import retrieve_with_timing
+from ..schemas import UserPublic
 
 router = APIRouter(prefix="/api/chat", tags=["chat"])
 
 
 SYSTEM_TEMPLATE = """You are Folio, a calm, careful medical companion for {name}.
-Your role is to help her:
-1. Talk through how she's feeling today — symptoms, mood, energy, anything on her mind.
-2. Make sense of her own medical record (active conditions, medications, recent vitals/labs).
-3. Decide whether something she's noticing warrants a clinician's attention.
+Your role is to help them:
+1. Talk through how they're feeling today — symptoms, mood, energy, anything on their mind.
+2. Make sense of their own medical record (active conditions, medications, recent vitals/labs).
+3. Decide whether something they're noticing warrants a clinician's attention.
 
 You have two pieces of grounding context:
-
-  (a) A SNAPSHOT of her current state — counts, latest values, active items.
-      Use this for "what am I on?" / "what's my latest BP?" type questions.
-
-  (b) A set of RETRIEVED PASSAGES — the reports most semantically relevant
-      to her current message. Cite these when she asks about history,
-      trends, or a specific past event. When you cite, refer to the
-      report by its date (e.g. "in your visit on 2026-02-14…").
+  (a) A SNAPSHOT of their current state.
+  (b) RETRIEVED PASSAGES from their reports, most relevant to this turn.
 
 Use both to keep every specific claim grounded. Never invent values or
 thresholds. If a claim is not supported by either context block, say so.
@@ -58,52 +53,52 @@ RETRIEVED PASSAGES (relevant to this turn)
 
 Style:
 - Warm, plain language. You're a thoughtful first listener, not a doctor.
-- Be concise. Default to 2–4 short paragraphs unless she asks for depth.
-- Ask one focused follow-up question when more detail would help. Don't
-  pile on a dozen questions.
-- If she mentions a red-flag symptom (chest pain with shortness of breath
+- Be concise. Default to 2–4 short paragraphs unless they ask for depth.
+- Ask one focused follow-up question when more detail would help.
+- If they mention a red-flag symptom (chest pain with shortness of breath
   or radiating arm pain, sudden severe headache, unilateral weakness or
   numbness, slurred speech, fainting, suicidal thoughts), stop and say
   clearly: "This sounds urgent. Please call 911 or go to the ER now."
-- Never diagnose, never prescribe, never invent dosages. When in doubt,
-  recommend bringing it up with her clinician at the next visit (or
-  sooner if it's bothering her).
-- When she asks about her own data, answer directly using snapshot or
-  retrieved passages. No hedging on facts she can verify.
-- If a question is outside the medical scope (recipes, plans, etc.),
-  gently redirect.
+- Never diagnose, never prescribe, never invent dosages.
+- When they ask about their own data, answer directly using snapshot or
+  retrieved passages. No hedging on facts they can verify.
+- Address the user as {name}.
+- If a question is outside medical scope, gently redirect.
 """
 
 
-async def _build_snapshot() -> str:
-    """Compact, readable summary of the patient's current state."""
+async def _build_snapshot(user_id: str) -> str:
     db = get_db()
 
     actives = await db.diagnoses_master.find(
-        {"status": "active"}, {"_id": 0}
+        {"user_id": user_id, "status": "active"}, {"_id": 0}
     ).sort("last_seen", -1).to_list(length=20)
 
     meds = await db.medications_master.find(
-        {"active": True}, {"_id": 0}
+        {"user_id": user_id, "active": True}, {"_id": 0}
     ).sort("last_seen", -1).to_list(length=30)
 
     vital_types = ["bp", "hr", "weight", "bmi", "spo2", "glucose", "temp"]
     latest_vitals = {}
     for vt in vital_types:
-        v = await db.vitals_timeline.find_one({"type": vt}, sort=[("recorded_at", -1)])
+        v = await db.vitals_timeline.find_one(
+            {"user_id": user_id, "type": vt}, sort=[("recorded_at", -1)]
+        )
         if v:
             latest_vitals[vt] = {"value": v.get("value"), "unit": v.get("unit"),
                                   "recorded_at": v.get("recorded_at")}
 
     recent_labs = await db.labs_timeline.find(
-        {}, {"_id": 0}
+        {"user_id": user_id}, {"_id": 0}
     ).sort("recorded_at", -1).limit(15).to_list(length=15)
 
     recent_reports = await db.reports.find(
-        {}, {"_id": 0, "uploaded_at": 1, "input_type": 1, "raw_summary": 1}
+        {"user_id": user_id},
+        {"_id": 0, "uploaded_at": 1, "input_type": 1, "raw_summary": 1},
     ).sort("uploaded_at", -1).limit(5).to_list(length=5)
 
     open_flags = await db.reports.aggregate([
+        {"$match": {"user_id": user_id}},
         {"$sort": {"uploaded_at": -1}}, {"$limit": 10},
         {"$unwind": "$red_flags"},
         {"$project": {"_id": 0, "finding": "$red_flags.finding",
@@ -118,7 +113,6 @@ async def _build_snapshot() -> str:
             lines.append(f"  - {d.get('condition','?').title()} ({d.get('icd10','—')})")
     else:
         lines.append("  (none recorded)")
-
     lines.append("")
     lines.append(f"Current medications ({len(meds)}):")
     if meds:
@@ -127,38 +121,33 @@ async def _build_snapshot() -> str:
                           f"{m.get('dose','')} {m.get('frequency','')} — {m.get('purpose','')}".strip())
     else:
         lines.append("  (none recorded)")
-
     lines.append("")
     lines.append("Latest vitals:")
     if latest_vitals:
         for vt, v in latest_vitals.items():
-            lines.append(f"  - {vt.upper()}: {v['value']} {v.get('unit','')} ({v.get('recorded_at','')[:10]})")
+            lines.append(f"  - {vt.upper()}: {v['value']} {v.get('unit','')} ({str(v.get('recorded_at',''))[:10]})")
     else:
         lines.append("  (none recorded)")
-
     lines.append("")
     lines.append("Recent labs (last 15):")
     if recent_labs:
         for l in recent_labs:
             flag = f" [{l['flag']}]" if l.get("flag") and l["flag"] != "normal" else ""
             lines.append(f"  - {l.get('test','?')}: {l.get('value','?')} {l.get('unit','')} "
-                          f"(ref {l.get('reference_range','—')}){flag} on {l.get('recorded_at','')[:10]}")
+                          f"(ref {l.get('reference_range','—')}){flag} on {str(l.get('recorded_at',''))[:10]}")
     else:
         lines.append("  (none recorded)")
-
     if open_flags:
         lines.append("")
         lines.append("Recent red flags surfaced from reports:")
         for f in open_flags:
             lines.append(f"  - {f['finding']} — {f['reason']} (urgency: {f['urgency']})")
-
     if recent_reports:
         lines.append("")
         lines.append("Recent report summaries:")
         for r in recent_reports:
-            lines.append(f"  - {r.get('uploaded_at','')[:10]} ({r.get('input_type','')}): "
+            lines.append(f"  - {str(r.get('uploaded_at',''))[:10]} ({r.get('input_type','')}): "
                           f"{r.get('raw_summary','')}")
-
     return "\n".join(lines)
 
 
@@ -198,13 +187,16 @@ async def _stream_openai(system: str, messages: list[dict]) -> AsyncIterator[str
 
 
 @router.get("/snapshot")
-async def snapshot():
-    """What context the assistant currently has — surfaced in the UI."""
+async def snapshot(user: UserPublic = Depends(require_auth)):
     db = get_db()
-    actives = await db.diagnoses_master.count_documents({"status": "active"})
-    meds = await db.medications_master.count_documents({"active": True})
-    last_vital = await db.vitals_timeline.find_one({}, sort=[("recorded_at", -1)])
-    last_report = await db.reports.find_one({}, sort=[("uploaded_at", -1)])
+    actives = await db.diagnoses_master.count_documents({"user_id": user.user_id, "status": "active"})
+    meds = await db.medications_master.count_documents({"user_id": user.user_id, "active": True})
+    last_vital = await db.vitals_timeline.find_one(
+        {"user_id": user.user_id}, sort=[("recorded_at", -1)]
+    )
+    last_report = await db.reports.find_one(
+        {"user_id": user.user_id}, sort=[("uploaded_at", -1)]
+    )
     return {
         "active_conditions": actives,
         "active_medications": meds,
@@ -216,19 +208,17 @@ async def snapshot():
 
 
 @router.post("")
-async def chat(payload: dict):
+async def chat(payload: dict, user: UserPublic = Depends(require_auth)):
     messages = payload.get("messages") or []
     if not isinstance(messages, list) or not messages:
         raise HTTPException(400, "messages required")
-    name = payload.get("name", "Rishika")
 
-    snapshot_text = await _build_snapshot()
+    name = user.display_name or user.username
+    snapshot_text = await _build_snapshot(user.user_id)
 
-    # RAG retrieval: pull the top-k passages most relevant to the latest user
-    # message and inject them into the system prompt as cited evidence.
     last_user = next((m["content"] for m in reversed(messages) if m.get("role") == "user"), "")
     try:
-        hits, rag_timing = await retrieve_with_timing(last_user, k=4)
+        hits, rag_timing = await retrieve_with_timing(last_user, user_id=user.user_id, k=4)
     except Exception:
         hits, rag_timing = [], {"embed_ms": 0, "search_ms": 0}
 
@@ -242,7 +232,6 @@ async def chat(payload: dict):
         passages = "(no prior reports retrieved for this query)"
     system = SYSTEM_TEMPLATE.format(name=name, snapshot=snapshot_text, passages=passages)
 
-    # Sanitize message history to {role, content}.
     clean: list[dict] = []
     for m in messages:
         role = m.get("role")
@@ -257,13 +246,11 @@ async def chat(payload: dict):
 
     if not (has_anthropic or has_openai):
         async def err_only():
-            yield _sse("error", {"message": "No language-model API key configured. Add ANTHROPIC_API_KEY or OPENAI_API_KEY to .env and restart the backend."})
+            yield _sse("error", {"message": "No language-model API key configured on this server."})
             yield _sse("done", {})
         return StreamingResponse(err_only(), media_type="text/event-stream")
 
     async def gen():
-        # Emit RAG metadata first so the UI can render citation chips
-        # while the model is still generating tokens.
         yield _sse("rag", {
             "hits": [{"report_id": h["report_id"], "uploaded_at": h["uploaded_at"],
                       "input_type": h["input_type"], "score": h["score"]} for h in hits],
@@ -289,9 +276,8 @@ async def chat(payload: dict):
 
 
 @router.post("/transcribe")
-async def transcribe_voice(file: UploadFile = File(...)):
-    """Lightweight transcription endpoint for the chat composer.
-    Returns just the transcript — no extraction pipeline."""
+async def transcribe_voice(file: UploadFile = File(...),
+                            user: UserPublic = Depends(require_auth)):
     audio = await file.read()
     if not audio:
         raise HTTPException(400, "empty audio")

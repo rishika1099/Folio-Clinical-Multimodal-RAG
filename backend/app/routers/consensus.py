@@ -5,22 +5,23 @@ Surfaced behind a "High-confidence mode" toggle in the UI.
 """
 import asyncio
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import JSONResponse
 
+from ..auth import require_auth
 from ..db import get_db
 from ..pipeline.consensus import consensus_extract
 from ..pipeline.persist import persist_report
 from ..pipeline.pii import scrub
-from ..rag.store import reindex_all
-from ..schemas import ExtractedReport
+from ..rag.store import reindex_user
+from ..schemas import ExtractedReport, UserPublic
 from ..suggestions.runner import run_all
 
 router = APIRouter(prefix="/api/consensus", tags=["consensus"])
 
 
 @router.post("")
-async def run_consensus(payload: dict):
+async def run_consensus(payload: dict, user: UserPublic = Depends(require_auth)):
     text = (payload.get("text") or "").strip()
     if not text:
         raise HTTPException(400, "text required")
@@ -35,21 +36,21 @@ async def run_consensus(payload: dict):
     data = result["report"]
     meta = result["consensus"]
 
-    report = ExtractedReport(input_type=input_type, source_text=text, **data,
-                              model_used="ensemble:" + ",".join(meta["models_succeeded"]),
-                              latency_ms={"consensus_total_ms": meta["elapsed_ms"]})
-    await persist_report(report)
+    report = ExtractedReport(
+        input_type=input_type, source_text=text, **data,
+        model_used="ensemble:" + ",".join(meta["models_succeeded"]),
+        latency_ms={"consensus_total_ms": meta["elapsed_ms"]},
+    )
+    await persist_report(report, user_id=user.user_id)
 
-    # Persist consensus metadata next to the report for later display.
     db = get_db()
     await db.consensus_meta.update_one(
         {"report_id": report.report_id},
-        {"$set": {"report_id": report.report_id, **meta}},
+        {"$set": {"user_id": user.user_id, "report_id": report.report_id, **meta}},
         upsert=True,
     )
 
-    # Fire-and-forget suggestions.
-    asyncio.create_task(run_all(report.report_id))
+    asyncio.create_task(run_all(report.report_id, user_id=user.user_id))
 
     return JSONResponse({
         "report": report.model_dump(),
@@ -58,19 +59,21 @@ async def run_consensus(payload: dict):
 
 
 @router.get("/{report_id}")
-async def get_consensus(report_id: str):
+async def get_consensus(report_id: str, user: UserPublic = Depends(require_auth)):
     db = get_db()
-    doc = await db.consensus_meta.find_one({"report_id": report_id}, {"_id": 0})
+    doc = await db.consensus_meta.find_one(
+        {"user_id": user.user_id, "report_id": report_id}, {"_id": 0}
+    )
     if not doc:
         raise HTTPException(404, "no consensus metadata for this report")
     return doc
 
 
 @router.post("/reindex")
-async def reindex():
-    """Manual trigger to rebuild all RAG embeddings."""
+async def reindex(user: UserPublic = Depends(require_auth)):
+    """Manual trigger to rebuild this user's RAG embeddings."""
     try:
-        n = await reindex_all()
+        n = await reindex_user(user.user_id)
     except Exception as e:
         raise HTTPException(500, f"reindex failed: {e}")
     return {"indexed": n}

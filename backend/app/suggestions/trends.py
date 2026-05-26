@@ -1,5 +1,4 @@
 """Vital-trend detection. Pure Python; LLM only writes the natural-language summary."""
-from datetime import datetime
 from ..db import get_db
 from ..schemas import Suggestion
 
@@ -12,16 +11,17 @@ def _parse_bp(value: str) -> tuple[int, int] | None:
         return None
 
 
-async def detect_trends(report_id: str) -> list[Suggestion]:
+async def detect_trends(report_id: str, user_id: str) -> list[Suggestion]:
     db = get_db()
     out: list[Suggestion] = []
 
-    # Blood pressure trend
-    bps = await db.vitals_timeline.find({"type": "bp"}).sort("recorded_at", -1).to_list(length=5)
+    bps = await db.vitals_timeline.find(
+        {"user_id": user_id, "type": "bp"}
+    ).sort("recorded_at", -1).to_list(length=5)
     parsed = [(_parse_bp(b["value"]), b) for b in bps]
     parsed = [(p, b) for p, b in parsed if p]
     if len(parsed) >= 3:
-        sys_vals = [p[0][0] for p, _ in parsed][:3][::-1]  # oldest → newest
+        sys_vals = [p[0][0] for p, _ in parsed][:3][::-1]
         if sys_vals[-1] - sys_vals[0] >= 10 and sys_vals[0] < sys_vals[1] < sys_vals[2]:
             out.append(Suggestion(
                 category="trend", severity="watch",
@@ -31,8 +31,9 @@ async def detect_trends(report_id: str) -> list[Suggestion]:
                 report_id=report_id,
             ))
 
-    # A1C trend
-    a1cs = await db.labs_timeline.find({"test": {"$regex": "a1c", "$options": "i"}}).sort("recorded_at", -1).to_list(length=5)
+    a1cs = await db.labs_timeline.find(
+        {"user_id": user_id, "test": {"$regex": "a1c", "$options": "i"}}
+    ).sort("recorded_at", -1).to_list(length=5)
     if len(a1cs) >= 2:
         try:
             recent = float(a1cs[0]["value"])

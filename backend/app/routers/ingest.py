@@ -12,9 +12,10 @@ import json
 import time
 from typing import AsyncIterator
 
-from fastapi import APIRouter, BackgroundTasks, File, Form, HTTPException, UploadFile
+from fastapi import APIRouter, BackgroundTasks, Depends, File, Form, HTTPException, UploadFile
 from fastapi.responses import StreamingResponse
 
+from ..auth import require_auth
 from ..cache import cache_key, get_json, set_json
 from ..pipeline.extraction import stream_extraction
 from ..pipeline.pdf_extract import extract_pdf_text
@@ -26,7 +27,7 @@ from ..models.router import (
     vision_clinical_extract,
     vision_extract_text,
 )
-from ..schemas import ExtractedReport
+from ..schemas import ExtractedReport, UserPublic
 from ..storage import save_attachment
 from ..suggestions.runner import run_all
 
@@ -39,6 +40,7 @@ def _sse(event: str, data) -> bytes:
 
 
 async def _pipeline(text: str, input_type: str, source_text: str | None,
+                    user_id: str,
                     extra_stages: list[tuple[str, float]] | None = None,
                     attachment: dict | None = None) -> AsyncIterator[bytes]:
     stages = list(extra_stages or [])
@@ -55,8 +57,7 @@ async def _pipeline(text: str, input_type: str, source_text: str | None,
     if cached:
         yield _sse("stage", {"stage": "cache_hit", "ms": 0})
         report = ExtractedReport(**cached, input_type=input_type, source_text=source_text)
-        # Re-persist (so timeline rebuilds for repeat uploads).
-        await persist_report(report)
+        await persist_report(report, user_id=user_id)
         yield _sse("token", json.dumps(cached))
         yield _sse("report", report.model_dump())
         yield _sse("done", {"report_id": report.report_id})
@@ -95,7 +96,7 @@ async def _pipeline(text: str, input_type: str, source_text: str | None,
     # Post-processing in parallel.
     t_post = time.perf_counter()
     await asyncio.gather(
-        persist_report(report),
+        persist_report(report, user_id=user_id),
         set_json(key, data),
     )
     post_ms = (time.perf_counter() - t_post) * 1000
@@ -112,34 +113,31 @@ async def _pipeline(text: str, input_type: str, source_text: str | None,
     yield _sse("done", {"report_id": report.report_id})
 
 
-def _spawn_suggestions(report_id: str):
-    # Fire-and-forget background task. We don't await, so the response is
-    # already closed by the time this runs. Caught at runner level.
-    asyncio.create_task(run_all(report_id))
+def _spawn_suggestions(report_id: str, user_id: str):
+    asyncio.create_task(run_all(report_id, user_id=user_id))
 
 
 @router.post("/text")
-async def ingest_text(payload: dict, background: BackgroundTasks):
+async def ingest_text(payload: dict, user: UserPublic = Depends(require_auth)):
     text = (payload.get("text") or "").strip()
     if not text:
         raise HTTPException(400, "text required")
 
     async def gen():
         report_id = None
-        async for chunk in _pipeline(text, "text", text):
+        async for chunk in _pipeline(text, "text", text, user_id=user.user_id):
             if chunk.startswith(b"event: done"):
-                # Extract report_id for the background task trigger.
                 line = chunk.decode().split("\n", 2)[1]
                 report_id = json.loads(line[len("data: "):])["report_id"]
             yield chunk
         if report_id:
-            _spawn_suggestions(report_id)
+            _spawn_suggestions(report_id, user.user_id)
 
     return StreamingResponse(gen(), media_type="text/event-stream")
 
 
 @router.post("/pdf")
-async def ingest_pdf(file: UploadFile = File(...)):
+async def ingest_pdf(file: UploadFile = File(...), user: UserPublic = Depends(require_auth)):
     content = await file.read()
     if not content:
         raise HTTPException(400, "empty file")
@@ -165,19 +163,20 @@ async def ingest_pdf(file: UploadFile = File(...)):
             print(f"[ingest_pdf] attachment save skipped: {exc}")
 
         report_id = None
-        async for chunk in _pipeline(text, "pdf", text, extra_stages=stages, attachment=attachment):
+        async for chunk in _pipeline(text, "pdf", text, user_id=user.user_id,
+                                       extra_stages=stages, attachment=attachment):
             if chunk.startswith(b"event: done"):
                 line = chunk.decode().split("\n", 2)[1]
                 report_id = json.loads(line[len("data: "):])["report_id"]
             yield chunk
         if report_id:
-            _spawn_suggestions(report_id)
+            _spawn_suggestions(report_id, user.user_id)
 
     return StreamingResponse(gen(), media_type="text/event-stream")
 
 
 @router.post("/image")
-async def ingest_image(file: UploadFile = File(...)):
+async def ingest_image(file: UploadFile = File(...), user: UserPublic = Depends(require_auth)):
     """
     Image ingest. Routes to a clinical-vision model that produces the full
     structured schema directly from the image. Handles BOTH cases in one
@@ -250,7 +249,7 @@ async def ingest_image(file: UploadFile = File(...)):
         # Persist + cache + spawn suggestions.
         t_post = time.perf_counter()
         await asyncio.gather(
-            persist_report(report),
+            persist_report(report, user_id=user.user_id),
             set_json(cache_key(buf, "vision-clinical", "v1"), data),
         )
         post_ms = (time.perf_counter() - t_post) * 1000
@@ -266,13 +265,13 @@ async def ingest_image(file: UploadFile = File(...)):
         yield _sse("report", report.model_dump())
         yield _sse("done", {"report_id": report.report_id})
 
-        _spawn_suggestions(report.report_id)
+        _spawn_suggestions(report.report_id, user.user_id)
 
     return StreamingResponse(gen(), media_type="text/event-stream")
 
 
 @router.post("/voice")
-async def ingest_voice(file: UploadFile = File(...)):
+async def ingest_voice(file: UploadFile = File(...), user: UserPublic = Depends(require_auth)):
     audio = await file.read()
     if not audio:
         raise HTTPException(400, "empty audio")
@@ -293,12 +292,12 @@ async def ingest_voice(file: UploadFile = File(...)):
             yield _sse("error", {"message": "Empty transcription"})
             return
         report_id = None
-        async for chunk in _pipeline(text, "voice", text, extra_stages=stages):
+        async for chunk in _pipeline(text, "voice", text, user_id=user.user_id, extra_stages=stages):
             if chunk.startswith(b"event: done"):
                 line = chunk.decode().split("\n", 2)[1]
                 report_id = json.loads(line[len("data: "):])["report_id"]
             yield chunk
         if report_id:
-            _spawn_suggestions(report_id)
+            _spawn_suggestions(report_id, user.user_id)
 
     return StreamingResponse(gen(), media_type="text/event-stream")

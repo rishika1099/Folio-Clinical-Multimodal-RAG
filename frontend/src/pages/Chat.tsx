@@ -7,6 +7,7 @@ import imageCompression from "browser-image-compression";
 import { api, API_BASE, apiForm } from "../lib/api";
 import { postSSE } from "../lib/sse";
 import { fmtRelative, fmtDate } from "../lib/format";
+import { displayName, initials } from "../lib/auth";
 
 type Mode = "standard" | "consensus";
 
@@ -376,11 +377,12 @@ function ComposerBtn({ children, onClick, disabled, active, title }: {
 
 function Hero({ ctx }: { ctx: any }) {
   const greeting = timeGreeting();
+  const name = displayName().split(/\s+/)[0];  // first name only in the headline
   return (
     <div className="mb-5 max-w-2xl">
       <div className="text-[10.5px] uppercase tracking-[0.22em] text-accent-deep font-semibold">{greeting}</div>
       <h1 className="font-display text-[34px] sm:text-[40px] leading-[1.05] font-semibold tracking-tight text-ink-50 mt-1.5">
-        How are you feeling today, <span className="text-accent-deep">Rishika</span>?
+        How are you feeling today, <span className="text-accent-deep">{name}</span>?
       </h1>
       <p className="text-[14.5px] text-ink-200 mt-3 leading-relaxed">
         Talk to Folio about anything — a symptom, a question about your record, or just a check-in. Drop a PDF or photo to add it to your record. Flip the mode pill to <span className="font-medium text-accent-deep">High-conf</span> to run a 3-LLM ensemble extraction on a structured report.
@@ -583,7 +585,7 @@ function Avatar() {
   );
 }
 function UserAvatar() {
-  return <div className="h-9 w-9 rounded-xl bg-info-soft grid place-items-center text-info-ink font-display text-[13px] font-semibold shrink-0">R</div>;
+  return <div className="h-9 w-9 rounded-xl bg-info-soft grid place-items-center text-info-ink font-display text-[13px] font-semibold shrink-0">{initials()}</div>;
 }
 function Typing() {
   return (
