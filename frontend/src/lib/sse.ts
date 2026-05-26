@@ -34,8 +34,17 @@ export async function postSSE(
       let event = "message";
       const dataLines: string[] = [];
       for (const line of block.split("\n")) {
-        if (line.startsWith("event:")) event = line.slice(6).trim();
-        else if (line.startsWith("data:")) dataLines.push(line.slice(5).trim());
+        if (line.startsWith("event:")) {
+          event = line.slice(6).trim();
+        } else if (line.startsWith("data:")) {
+          // Per SSE spec: strip EXACTLY one leading space after "data:" if
+          // present, preserve everything else. Calling .trim() here was a
+          // bug — it ate token-internal leading spaces, causing streamed
+          // words to run together (e.g. "and" + " pain" → "andpain").
+          let v = line.slice(5);
+          if (v.startsWith(" ")) v = v.slice(1);
+          dataLines.push(v);
+        }
       }
       onEvent({ event, data: dataLines.join("\n") });
     }

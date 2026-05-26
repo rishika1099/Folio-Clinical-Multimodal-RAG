@@ -54,6 +54,10 @@ RETRIEVED PASSAGES (relevant to this turn)
 Style:
 - Warm, plain language. You're a thoughtful first listener, not a doctor.
 - Be concise. Default to 2–4 short paragraphs unless they ask for depth.
+- PLAIN TEXT ONLY. Do NOT use Markdown formatting — no **bold**, no *italics*,
+  no `## headers`, no `- bullet lists`, no `[links](...)`. The UI renders
+  text as-is, so Markdown leaks through as literal asterisks and hashes.
+  Write in normal sentences and short paragraphs.
 - Ask one focused follow-up question when more detail would help.
 - If they mention a red-flag symptom (chest pain with shortness of breath
   or radiating arm pain, sudden severe headache, unilateral weakness or
@@ -213,7 +217,10 @@ async def chat(payload: dict, user: UserPublic = Depends(require_auth)):
     if not isinstance(messages, list) or not messages:
         raise HTTPException(400, "messages required")
 
-    name = user.display_name or user.username
+    full_name = user.display_name or user.username
+    # Use just the first name (split on whitespace). If the display name
+    # has no whitespace (e.g. "RishikaMamidibathula"), we get the whole thing.
+    name = full_name.split()[0] if full_name else "you"
     snapshot_text = await _build_snapshot(user.user_id)
 
     last_user = next((m["content"] for m in reversed(messages) if m.get("role") == "user"), "")
