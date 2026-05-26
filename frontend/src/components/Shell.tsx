@@ -119,12 +119,8 @@ function Disclaimer() {
 function Footer() {
   return (
     <footer className="px-8 py-5 mt-6 border-t border-ink-700 text-[11.5px] text-ink-300 flex flex-wrap items-center justify-between gap-3">
-      <div>Folio <span className="text-ink-400">v0.1</span> · built locally · MongoDB · Redis · FastAPI</div>
-      <div className="flex items-center gap-3">
-        <a className="link" href="/api/docs" target="_blank" rel="noreferrer">API docs</a>
-        <span className="text-ink-500">·</span>
-        <span>Inputs scrubbed for PII before any model call.</span>
-      </div>
+      <div>Built by <span className="text-ink-100 font-medium">Rishika Mamidibathula</span></div>
+      <div className="text-ink-400">© 2026 · All rights reserved</div>
     </footer>
   );
 }
