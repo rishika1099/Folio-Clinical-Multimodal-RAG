@@ -51,6 +51,7 @@ export default function ChatPage() {
   const recRef = useRef<MediaRecorder | null>(null);
   const recChunks = useRef<Blob[]>([]);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const cameraInputRef = useRef<HTMLInputElement | null>(null);
   const threadEnd = useRef<HTMLDivElement | null>(null);
   const qc = useQueryClient();
   const navigate = useNavigate();
@@ -287,7 +288,16 @@ export default function ChatPage() {
                     <path d="M21 12.5 12.5 21a5 5 0 1 1-7-7L14 5.5a3.5 3.5 0 0 1 5 5L10.5 19a2 2 0 1 1-3-3l8-8" strokeLinecap="round" strokeLinejoin="round"/>
                   </svg>
                 </ComposerBtn>
+                <ComposerBtn onClick={() => cameraInputRef.current?.click()}
+                              disabled={streaming || transcribing} title="Take a photo">
+                  <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.7">
+                    <path d="M4 7h3l2-2h6l2 2h3a1 1 0 0 1 1 1v11a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V8a1 1 0 0 1 1-1z" strokeLinejoin="round"/>
+                    <circle cx="12" cy="13" r="4"/>
+                  </svg>
+                </ComposerBtn>
                 <input ref={fileInputRef} type="file" accept="application/pdf,image/*" className="hidden"
+                       onChange={(e) => { const f = e.target.files?.[0]; if (f) handleFile(f); e.currentTarget.value = ""; }} />
+                <input ref={cameraInputRef} type="file" accept="image/*" capture="environment" className="hidden"
                        onChange={(e) => { const f = e.target.files?.[0]; if (f) handleFile(f); e.currentTarget.value = ""; }} />
                 {transcribing && <span className="text-[11.5px] text-ink-300 animate-pulse-soft">transcribing…</span>}
                 {recording && <span className="text-[11.5px] text-alert-deep font-medium">recording — click to stop</span>}
