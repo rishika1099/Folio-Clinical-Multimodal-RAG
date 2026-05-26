@@ -346,12 +346,16 @@ Rules — CRITICAL:
 
 async def vision_clinical_extract(images: list[bytes], mime: str = "image/png") -> AsyncIterator[str]:
     """
-    Stream clinical-vision analysis of one or more images. Yields JSON tokens
-    as they arrive from Claude (preferred) or Gemini Pro (fallback). The
-    final assembled JSON conforms to the unified ExtractedReport schema.
+    Stream clinical-vision analysis of one or more images.
+
+    Tries Claude Sonnet first (best medical-image quality). If that fails
+    for any reason — bad model name, billing, transient 5xx — fall back to
+    Gemini Flash (which is on the free tier; we deliberately avoid Pro
+    here because its free-tier RPM is 0).
     """
     import base64
 
+    claude_err: Exception | None = None
     client = _anthropic_client()
     if client is not None:
         content: list[dict] = []
@@ -373,25 +377,40 @@ async def vision_clinical_extract(images: list[bytes], mime: str = "image/png") 
                 async for piece in stream.text_stream:
                     yield piece
             return
-        except Exception:
-            pass
+        except Exception as e:
+            claude_err = e
+            print(f"[vision_clinical] Claude failed, falling back to Gemini Flash: {e!r}")
 
-    # Gemini fallback.
+    # Gemini fallback — use Flash, not Pro. Free tier covers Flash; Pro is
+    # paid-only as of 2026 and would 429 here.
     genai = _gemini_client()
     if genai is None:
+        if claude_err is not None:
+            raise RuntimeError(f"Claude vision failed and no Gemini key configured: {claude_err}")
         raise RuntimeError("No vision provider available")
     loop = asyncio.get_event_loop()
     def _do():
         model = genai.GenerativeModel(
-            settings.gemini_strong_model,
+            settings.gemini_fast_model,
             system_instruction=CLINICAL_VISION_SYSTEM,
             generation_config={"response_mime_type": "application/json", "max_output_tokens": 2500},
         )
         parts: list[Any] = [{"mime_type": mime, "data": img} for img in images]
         parts.append("Analyse this image and return the structured JSON per the schema.")
         return model.generate_content(parts, stream=True)
-    stream = await loop.run_in_executor(None, _do)
-    for piece in stream:
-        text = getattr(piece, "text", None)
-        if text:
-            yield text
+    try:
+        stream = await loop.run_in_executor(None, _do)
+        for piece in stream:
+            text = getattr(piece, "text", None)
+            if text:
+                yield text
+    except Exception as gemini_err:
+        # If both providers failed, raise a combined error so the
+        # frontend can show the user something useful.
+        if claude_err is not None:
+            raise RuntimeError(
+                f"Both vision providers failed.\n"
+                f"  Claude: {claude_err}\n"
+                f"  Gemini: {gemini_err}"
+            )
+        raise
