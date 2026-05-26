@@ -1,11 +1,10 @@
 # Render blueprint — one-click backend deploy.
-# After pushing to GitHub, go to https://dashboard.render.com/select-repo
-# and pick this repo; Render reads this file and provisions everything.
+# Go to https://dashboard.render.com/blueprints, point Render at this repo,
+# and it provisions everything from this file.
 services:
   - type: web
     name: folio-backend
     runtime: docker
-    repo: https://github.com/REPLACE_ME/folio
     rootDir: backend
     dockerfilePath: ./Dockerfile
     plan: free
