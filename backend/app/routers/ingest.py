@@ -214,7 +214,8 @@ async def ingest_image(file: UploadFile = File(...), user: UserPublic = Depends(
         first_token_ms = None
         buf = ""
         try:
-            async for piece in vision_clinical_extract([content], mime=mime):
+            user_name = user.display_name or user.username
+            async for piece in vision_clinical_extract([content], mime=mime, user_name=user_name):
                 if first_token_ms is None:
                     first_token_ms = (time.perf_counter() - t_llm) * 1000
                     yield _sse("stage", {"stage": "vision_first_token", "ms": first_token_ms})

@@ -308,52 +308,74 @@ async def vision_extract_text(images: list[bytes], mime: str = "image/png") -> s
 #   - both can be true → populate both
 # -----------------------------------------------------------------------------
 
-CLINICAL_VISION_SYSTEM = """You are a careful clinical observer analyzing a medical image. The image may be one of:
+CLINICAL_VISION_SYSTEM_TEMPLATE = """You are Folio, a careful clinical observer looking at a photograph that {name} just shared with you. Speak directly to {name} in the second person ("you", "your"). NEVER use third-person clinical phrases like "the patient", "the image displays", "the individual" — talk to {name}, not about them.
+
+The image will be one of:
   (a) a photograph of a body part — skin lesion, eye, wound, nail, mouth, etc.
   (b) a photograph of a paper medical document, lab report, or prescription label
   (c) a screenshot of an electronic record
-  (d) a combination of the above
+  (d) some combination
 
-Your job is to produce a SINGLE JSON object conforming to this schema:
+Produce a SINGLE JSON object conforming to this schema:
 
-{
-  "diagnoses":   [{"condition": "", "icd10": "", "status": "active|resolved|suspected", "confidence": 0.0}],
-  "medications": [{"name": "", "dose": "", "frequency": "", "started_at": "", "purpose": ""}],
-  "vitals":      [{"type": "bp|hr|temp|spo2|weight|bmi|glucose", "value": "", "unit": "", "recorded_at": ""}],
-  "labs":        [{"test": "", "value": "", "unit": "", "reference_range": "", "flag": "normal|high|low|critical"}],
-  "symptoms":    [{"description": "", "onset": "", "severity": "mild|moderate|severe"}],
-  "red_flags":   [{"finding": "", "reason": "", "urgency": "routine|soon|urgent|emergent"}],
+{{
+  "diagnoses":   [{{"condition": "", "icd10": "", "status": "active|resolved|suspected", "confidence": 0.0}}],
+  "medications": [{{"name": "", "dose": "", "frequency": "", "started_at": "", "purpose": ""}}],
+  "vitals":      [{{"type": "bp|hr|temp|spo2|weight|bmi|glucose", "value": "", "unit": "", "recorded_at": ""}}],
+  "labs":        [{{"test": "", "value": "", "unit": "", "reference_range": "", "flag": "normal|high|low|critical"}}],
+  "symptoms":    [{{"description": "", "onset": "", "severity": "mild|moderate|severe"}}],
+  "red_flags":   [{{"finding": "", "reason": "", "urgency": "routine|soon|urgent|emergent"}}],
   "raw_summary": ""
-}
+}}
 
 Rules — CRITICAL:
 
-- For body-part photos, populate `symptoms` with the visible OBSERVATIONS, not diagnoses. Each entry should describe location, distribution, color, texture, size, borders, any signs of inflammation, infection, or trauma. Example:
-    {"description": "Erythematous, circular lesion ~2cm with central clearing on right forearm; well-demarcated borders.", "onset": "", "severity": "mild"}
+- `raw_summary` is what {name} reads first. Structure it like this:
+    1. ONE opening sentence that names the most likely consideration, with hedged language. Example: "This looks consistent with a severe bullous dermatosis — possibly toxic epidermal necrolysis or a severe drug reaction." Don't say "the image displays". Lead with the consideration.
+    2. ONE or TWO sentences describing what you see ON them, in second person: "I can see extensive blistering across your perioral area and chin, with crusting on your forehead."
+    3. ONE closing sentence with the recommended next step + urgency: "Given how extensive this is, please seek urgent medical evaluation today."
+  Keep it tight — 3–4 sentences total. Never write "this is X" with certainty — always hedge.
 
-- Set `red_flags` for visible findings that warrant clinical attention (e.g. ulceration, signs of infection, ocular involvement, asymmetric lesion concerning for malignancy, significant trauma). Use urgency = "emergent" only for true emergencies (e.g. visible orbital trauma, aggressive necrosis).
+- For body-part photos, populate `symptoms` with neutral OBSERVATIONS (location, distribution, color, texture, size, borders). Example:
+    {{"description": "Widespread erythema and possible epidermal detachment across face, cheeks, forehead, periorbital areas. Affected areas moist and inflamed.", "onset": "", "severity": "severe"}}
 
-- In `raw_summary`, write 2–3 sentences in plain English: what the image shows, possible differential considerations using HEDGING language ("findings are consistent with", "differential includes…", "would benefit from clinician evaluation"), and the recommended next step. NEVER write "this is X" — always describe.
+- Set `red_flags` for visible findings that warrant clinical attention (ulceration, signs of infection, ocular involvement, asymmetric lesion concerning for malignancy, signs of TEN/SJS, anaphylaxis). Use urgency = "emergent" only for true emergencies; "urgent" for "today"; "soon" for "this week".
 
-- Do NOT populate `diagnoses` from a body-part photo unless the image contains a diagnosis label or report text explicitly stating one. Visual observations belong in `symptoms`/`red_flags` and possible differentials live in `raw_summary` as hedged language.
+- Do NOT populate `diagnoses` from a body-part photo unless the image contains a diagnosis label or report text explicitly stating one. Visual observations belong in `symptoms`/`red_flags`; possible differentials live in `raw_summary` as hedged language.
 
 - For document/label photos, populate structured fields (medications, labs, vitals) directly from the visible text.
 
-- If you genuinely cannot tell what's in the image, return all empty arrays and a raw_summary that says so. Do not guess.
+- If you genuinely cannot tell what's in the image, return all empty arrays and a raw_summary that says so plainly: "I can't make this image out clearly — could you re-take it with more light?"
 
 - Output JSON only. No prose outside the JSON. No code fences."""
 
 
-async def vision_clinical_extract(images: list[bytes], mime: str = "image/png") -> AsyncIterator[str]:
+def build_clinical_vision_system(name: str) -> str:
+    """Format the vision system prompt for a specific user.
+    Falls back to 'you' framing if name is empty."""
+    safe_name = (name or "the user").strip() or "the user"
+    return CLINICAL_VISION_SYSTEM_TEMPLATE.format(name=safe_name)
+
+
+async def vision_clinical_extract(
+    images: list[bytes],
+    mime: str = "image/png",
+    user_name: str = "",
+) -> AsyncIterator[str]:
     """
     Stream clinical-vision analysis of one or more images.
 
+    user_name is used to personalise the system prompt so the model
+    addresses the user directly (e.g. "Your image shows…") instead of
+    talking about them in the third person.
+
     Tries Claude Sonnet first (best medical-image quality). If that fails
     for any reason — bad model name, billing, transient 5xx — fall back to
-    Gemini Flash (which is on the free tier; we deliberately avoid Pro
-    here because its free-tier RPM is 0).
+    Gemini Flash (Flash is on the free tier; Pro's free-tier RPM is 0).
     """
     import base64
+
+    system_prompt = build_clinical_vision_system(user_name)
 
     claude_err: Exception | None = None
     client = _anthropic_client()
@@ -370,7 +392,7 @@ async def vision_clinical_extract(images: list[bytes], mime: str = "image/png") 
             async with client.messages.stream(
                 model=settings.claude_strong_model,
                 max_tokens=2500,
-                system=[{"type": "text", "text": CLINICAL_VISION_SYSTEM,
+                system=[{"type": "text", "text": system_prompt,
                           "cache_control": {"type": "ephemeral"}}],
                 messages=[{"role": "user", "content": content}],
             ) as stream:
@@ -392,7 +414,7 @@ async def vision_clinical_extract(images: list[bytes], mime: str = "image/png") 
     def _do():
         model = genai.GenerativeModel(
             settings.gemini_fast_model,
-            system_instruction=CLINICAL_VISION_SYSTEM,
+            system_instruction=system_prompt,
             generation_config={"response_mime_type": "application/json", "max_output_tokens": 2500},
         )
         parts: list[Any] = [{"mime_type": mime, "data": img} for img in images]
@@ -405,8 +427,6 @@ async def vision_clinical_extract(images: list[bytes], mime: str = "image/png") 
             if text:
                 yield text
     except Exception as gemini_err:
-        # If both providers failed, raise a combined error so the
-        # frontend can show the user something useful.
         if claude_err is not None:
             raise RuntimeError(
                 f"Both vision providers failed.\n"
