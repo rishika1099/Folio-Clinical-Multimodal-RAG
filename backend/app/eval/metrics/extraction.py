@@ -226,14 +226,38 @@ def hallucination_rate(source: str, pred: dict) -> float:
 
 
 def coverage_rate(gold: dict, pred: dict) -> float:
+    """Fraction of gold items captured by the prediction. Uses the same
+    matching rule as the per-section F1 so the two metrics tell a
+    consistent story: exact key for medications/vitals, fuzzy token
+    overlap for the free-text sections."""
     gold_total = sum(len(gold.get(s, [])) for s in SECTIONS)
     if not gold_total:
         return 1.0
     caught = 0
     for sec in SECTIONS:
-        g = {KEY_FN[sec](x) for x in gold.get(sec, []) if KEY_FN[sec](x)}
-        p = {KEY_FN[sec](x) for x in pred.get(sec, []) if KEY_FN[sec](x)}
-        caught += len(g & p)
+        if sec in EXACT_SECTIONS:
+            g = {KEY_FN[sec](x) for x in gold.get(sec, []) if KEY_FN[sec](x)}
+            p = {KEY_FN[sec](x) for x in pred.get(sec, []) if KEY_FN[sec](x)}
+            caught += len(g & p)
+        else:
+            # Fuzzy bipartite match — count gold items that found a
+            # ≥0.5-overlap pair in the prediction.
+            g_texts = [TEXT_FN[sec](x) for x in gold.get(sec, [])]
+            p_texts = [TEXT_FN[sec](x) for x in pred.get(sec, [])]
+            used = [False] * len(p_texts)
+            for gt in g_texts:
+                if not gt:
+                    continue
+                best_i, best_ov = -1, 0.0
+                for i, pt in enumerate(p_texts):
+                    if used[i] or not pt:
+                        continue
+                    ov = _overlap(gt, pt)
+                    if ov > best_ov:
+                        best_ov, best_i = ov, i
+                if best_i >= 0 and best_ov >= 0.5:
+                    used[best_i] = True
+                    caught += 1
     return caught / gold_total
 
 

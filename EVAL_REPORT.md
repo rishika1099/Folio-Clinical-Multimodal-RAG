@@ -1,8 +1,8 @@
 # Folio — Evaluation Report
 
-_Generated 2026-05-27T04:37:06.546000Z · 12 extraction examples · 10 RAG queries · 6 PII cases · 3 chat probes_
+_Generated 2026-05-27T05:14:28.068334Z · 12 extraction examples · 10 RAG queries · 6 PII cases · 3 chat probes_
 
-**Extraction predictions: LIVE** — `claude-haiku-4-5` on 12 examples (5,977 input + 4,236 output tokens).
+**Extraction predictions: LIVE** — `claude-haiku-4-5` on 12 examples (9,310 input + 3,774 output tokens).
 
 All metrics are reproducible — `python -m app.eval.runner` regenerates this file.
 
@@ -10,15 +10,15 @@ All metrics are reproducible — `python -m app.eval.runner` regenerates this fi
 
 | Area | Metric | Value |
 |---|---|---|
-| Extraction | Micro-F1 (all sections) | **81.8%** |
-| Extraction | Macro-F1 (mean across sections) | **73.5%** |
+| Extraction | Micro-F1 (all sections) | **89.3%** |
+| Extraction | Macro-F1 (mean across sections) | **88.5%** |
 | Extraction | Schema validity | 100.0% |
-| Extraction | Hallucination rate | 0.0% |
-| Extraction | Coverage of gold items | 67.6% |
-| RAG | Recall@1 | **30.0%** |
-| RAG | Recall@5 | 50.0% |
-| RAG | MRR | 0.407 |
-| RAG | NDCG@10 | 0.538 |
+| Extraction | Hallucination rate | 2.8% |
+| Extraction | Coverage of gold items | 89.4% |
+| RAG | Recall@1 | **100.0%** |
+| RAG | Recall@5 | 100.0% |
+| RAG | MRR | 1.000 |
+| RAG | NDCG@10 | 0.995 |
 | Consensus | Unanimous agreement (3/3) | 40.8% |
 | Consensus | Convergence (≥2/3) | 85.7% |
 | Consensus | Cluster representative correctness | 100.0% |
@@ -29,9 +29,9 @@ All metrics are reproducible — `python -m app.eval.runner` regenerates this fi
 | Chat | Citation correctness | 100.0% |
 | Chat | Red-flag detection recall | 100.0% |
 | Chat | Hallucination guard | 100.0% |
-| Latency | PII scrub p50 / p95 | 0.042 ms / 0.044 ms |
-| Latency | Hash-embed p50 (per doc) | 0.072 ms |
-| Latency | Cosine search p50 over corpus | 0.967 ms |
+| Latency | PII scrub p50 / p95 | 0.103 ms / 0.121 ms |
+| Latency | Hash-embed p50 (per doc) | 0.095 ms |
+| Latency | Cosine search p50 over corpus | 0.984 ms |
 
 ## 1. Extraction quality
 
@@ -39,59 +39,59 @@ Per-section precision / recall / F1, aggregated across the gold corpus. Items ar
 
 | Section | TP | FP | FN | Precision | Recall | F1 |
 |---|---:|---:|---:|---:|---:|---:|
-| diagnoses | 4 | 3 | 1 | 57.1% | 80.0% | **66.7%** |
+| diagnoses | 4 | 2 | 1 | 66.7% | 80.0% | **72.7%** |
 | medications | 12 | 0 | 0 | 100.0% | 100.0% | **100.0%** |
-| vitals | 13 | 1 | 0 | 92.9% | 100.0% | **96.3%** |
+| vitals | 13 | 0 | 0 | 100.0% | 100.0% | **100.0%** |
 | labs | 9 | 4 | 1 | 69.2% | 90.0% | **78.3%** |
-| symptoms | 6 | 3 | 1 | 66.7% | 85.7% | **75.0%** |
-| red_flags | 1 | 5 | 1 | 16.7% | 50.0% | **25.0%** |
+| symptoms | 6 | 2 | 1 | 75.0% | 85.7% | **80.0%** |
+| red_flags | 2 | 0 | 0 | 100.0% | 100.0% | **100.0%** |
 
 ### By modality
 
 | Modality | N | Macro-F1 |
 |---|---:|---:|
-| text | 6 | 89.7% |
-| pdf | 3 | 92.6% |
-| voice | 2 | 62.2% |
+| text | 6 | 93.7% |
+| pdf | 3 | 98.1% |
+| voice | 2 | 87.2% |
 | image | 1 | 83.3% |
 
 ### By difficulty
 
 | Tag | N | Macro-F1 |
 |---|---:|---:|
-| easy | 4 | 89.8% |
-| medium | 4 | 90.5% |
-| hard | 4 | 75.6% |
+| easy | 4 | 98.6% |
+| medium | 4 | 94.7% |
+| hard | 4 | 85.3% |
 
 ## 2. RAG retrieval
 
-Top-k retrieval over the gold corpus for each canonical query. Embeddings are deterministic hash-bag pseudo-embeddings (live API replaces these in production).
+Top-k retrieval over the gold corpus for each canonical query. Embeddings are **live (OpenAI text-embedding-3-small)**.
 
 | Metric | Value |
 |---|---:|
-| Recall@1 | 30.0% |
-| Recall@3 | 30.0% |
-| Recall@5 | 50.0% |
+| Recall@1 | 100.0% |
+| Recall@3 | 100.0% |
+| Recall@5 | 100.0% |
 | Recall@10 | 100.0% |
-| MRR | 0.407 |
-| NDCG@10 | 0.538 |
-| Mean embed time per query | 0.06 ms |
-| Mean cosine search time per query | 1.029 ms |
+| MRR | 1.000 |
+| NDCG@10 | 0.995 |
+| Mean embed time per query | 659.26 ms |
+| Mean cosine search time per query | 3.366 ms |
 
 ### Per-query top-5
 
 | Query | First-hit rank | Top-5 returned |
 |---|---:|---|
-| When was my last A1C and what was it? | 10 | `ex10, ex05, ex08, ex04, ex01` |
-| Is my blood pressure trending up? | 4 | `ex05, ex03, ex10, ex01, ex02` |
-| What medications am I on for diabetes? | 4 | `ex05, ex12, ex03, ex07, ex01` |
-| Have I had a stroke or stroke symptoms? | 10 | `ex01, ex02, ex03, ex04, ex05` |
-| Tell me about my thyroid labs. | 9 | `ex10, ex05, ex06, ex11, ex08` |
-| What's the skin lesion on my arm? | 1 | `ex06, ex05, ex08, ex12, ex01` |
-| Was I hospitalised recently? | 9 | `ex12, ex01, ex02, ex03, ex04` |
-| Am I on warfarin? | 7 | `ex02, ex01, ex03, ex04, ex05` |
-| Should I worry about chest pain? | 1 | `ex03, ex10, ex02, ex01, ex04` |
-| What's my cancer treatment plan? | 1 | `ex12, ex06, ex05, ex01, ex02` |
+| When was my last A1C and what was it? | 1 | `ex02, ex01, ex08, ex11, ex04` |
+| Is my blood pressure trending up? | 1 | `ex01, ex02, ex03, ex07, ex11` |
+| What medications am I on for diabetes? | 1 | `ex02, ex07, ex01, ex08, ex12` |
+| Have I had a stroke or stroke symptoms? | 1 | `ex10, ex03, ex05, ex09, ex06` |
+| Tell me about my thyroid labs. | 1 | `ex04, ex02, ex11, ex12, ex09` |
+| What's the skin lesion on my arm? | 1 | `ex06, ex03, ex12, ex10, ex04` |
+| Was I hospitalised recently? | 1 | `ex08, ex03, ex05, ex09, ex10` |
+| Am I on warfarin? | 1 | `ex07, ex01, ex02, ex12, ex08` |
+| Should I worry about chest pain? | 1 | `ex03, ex05, ex01, ex12, ex10` |
+| What's my cancer treatment plan? | 1 | `ex12, ex02, ex07, ex08, ex04` |
 
 ## 3. Multi-LLM consensus
 
@@ -131,9 +131,9 @@ Sampled n=50 runs per stage on local hardware.
 
 | Stage | Mean | p50 | p95 | p99 |
 |---|---:|---:|---:|---:|
-| PII scrub | 0.042 ms | 0.042 ms | 0.044 ms | 0.046 ms |
-| Hash embed (per doc) | 0.079 ms | 0.072 ms | 0.092 ms | 0.197 ms |
-| Cosine search (full corpus) | 1.000 ms | 0.967 ms | 1.050 ms | 1.424 ms |
+| PII scrub | 0.104 ms | 0.103 ms | 0.121 ms | 0.125 ms |
+| Hash embed (per doc) | 0.105 ms | 0.095 ms | 0.160 ms | 0.193 ms |
+| Cosine search (full corpus) | 0.997 ms | 0.984 ms | 1.052 ms | 1.077 ms |
 
 ## 6. Chat groundedness
 

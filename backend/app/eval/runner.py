@@ -10,9 +10,26 @@ from __future__ import annotations
 import argparse
 import asyncio
 import json
+import os
 from dataclasses import asdict, is_dataclass
 from datetime import datetime
 from pathlib import Path
+
+# Load .env BEFORE anything imports settings — otherwise settings.openai_api_key
+# stays empty and live-embed silently falls back to zero vectors.
+_repo_root = Path(__file__).resolve().parents[3]
+_env = _repo_root / ".env"
+if _env.exists():
+    try:
+        from dotenv import load_dotenv
+        load_dotenv(_env)
+    except ImportError:
+        # python-dotenv is optional; do it manually as a fallback.
+        for line in _env.read_text().splitlines():
+            line = line.strip()
+            if line and not line.startswith("#") and "=" in line:
+                k, v = line.split("=", 1)
+                os.environ.setdefault(k.strip(), v.strip())
 
 from .dataset import EXTRACTION_GOLD, RAG_QUERIES, PII_CASES, CHAT_PROBES, all_modality_counts
 from .metrics.extraction import evaluate_extraction, synthesize_reference_predictions, SECTIONS
