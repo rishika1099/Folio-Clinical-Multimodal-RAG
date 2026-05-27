@@ -33,8 +33,22 @@ def _serialisable(obj):
     return obj
 
 
-async def run_all(*, live_embed: bool = False) -> dict:
-    extraction = evaluate_extraction(synthesize_reference_predictions())
+async def run_all(*, live_embed: bool = False, predictions_path: str | None = None) -> dict:
+    if predictions_path:
+        raw = json.loads(Path(predictions_path).read_text())
+        preds = raw.get("predictions") or raw
+        prediction_source = {
+            "kind": "live",
+            "model": raw.get("model"),
+            "n": raw.get("n"),
+            "total_input_tokens": raw.get("total_input_tokens"),
+            "total_output_tokens": raw.get("total_output_tokens"),
+            "failed": raw.get("failed") or [],
+        }
+    else:
+        preds = synthesize_reference_predictions()
+        prediction_source = {"kind": "synthetic"}
+    extraction = evaluate_extraction(preds)
     rag = await evaluate_rag(use_live_embeddings=live_embed)
     consensus = evaluate_consensus()
     pii = evaluate_pii()
@@ -50,6 +64,7 @@ async def run_all(*, live_embed: bool = False) -> dict:
             "n_chat_probes": len(CHAT_PROBES),
             "modality_counts": all_modality_counts(),
             "live_embed": live_embed,
+            "prediction_source": prediction_source,
         },
         "extraction": _serialisable(extraction),
         "rag": _serialisable(rag),
@@ -82,8 +97,15 @@ def write_markdown(results: dict, path: Path) -> None:
         f"· {meta['n_rag_queries']} RAG queries · {meta['n_pii_cases']} PII cases · "
         f"{meta['n_chat_probes']} chat probes_")
     out("")
-    out("This report runs the eval harness against a fixed synthetic gold dataset. "
-        "All metrics are reproducible — `python -m app.eval.runner` regenerates this file.")
+    src = meta.get("prediction_source", {})
+    if src.get("kind") == "live":
+        out(f"**Extraction predictions: LIVE** — `{src.get('model','?')}` on {src.get('n','?')} examples "
+            f"({src.get('total_input_tokens',0):,} input + {src.get('total_output_tokens',0):,} output tokens).")
+    else:
+        out("**Extraction predictions: synthetic** (gold-with-seeded-errors). "
+            "Run `live_extract.py` and pass `--predictions <path>` for real model numbers.")
+    out("")
+    out("All metrics are reproducible — `python -m app.eval.runner` regenerates this file.")
     out("")
 
     out("## Headline numbers")
@@ -297,11 +319,14 @@ async def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--live-embed", action="store_true",
                     help="Use the real OpenAI embedding endpoint for RAG eval.")
+    ap.add_argument("--predictions", default=None,
+                    help="Path to a JSON file of real-model predictions from live_extract.py. "
+                         "When omitted, uses deterministic synthetic predictions.")
     ap.add_argument("--json", default=None, help="Also write machine-readable JSON to this path.")
     ap.add_argument("--out", default=None, help="Markdown output path (default: repo root EVAL_REPORT.md).")
     args = ap.parse_args()
 
-    results = await run_all(live_embed=args.live_embed)
+    results = await run_all(live_embed=args.live_embed, predictions_path=args.predictions)
 
     out_md = Path(args.out) if args.out else Path(__file__).resolve().parents[3] / "EVAL_REPORT.md"
     write_markdown(results, out_md)

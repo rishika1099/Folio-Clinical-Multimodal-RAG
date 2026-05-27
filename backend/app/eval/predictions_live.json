@@ -1,0 +1,627 @@
+{
+  "model": "claude-haiku-4-5",
+  "n": 12,
+  "total_input_tokens": 5977,
+  "total_output_tokens": 4236,
+  "failed": [],
+  "meta": {
+    "ex01_hypertension_followup": {
+      "elapsed_ms": 2027.4,
+      "model": "claude-haiku-4-5",
+      "input_tokens": 537,
+      "output_tokens": 274,
+      "cache_creation_input_tokens": 0,
+      "cache_read_input_tokens": 0,
+      "raw_chars": 754,
+      "parsed_ok": true
+    },
+    "ex02_diabetes_panel": {
+      "elapsed_ms": 4132.6,
+      "model": "claude-haiku-4-5",
+      "input_tokens": 560,
+      "output_tokens": 825,
+      "cache_creation_input_tokens": 0,
+      "cache_read_input_tokens": 0,
+      "raw_chars": 2189,
+      "parsed_ok": true
+    },
+    "ex03_chest_pain_red_flag": {
+      "elapsed_ms": 2748.7,
+      "model": "claude-haiku-4-5",
+      "input_tokens": 527,
+      "output_tokens": 480,
+      "cache_creation_input_tokens": 0,
+      "cache_read_input_tokens": 0,
+      "raw_chars": 1401,
+      "parsed_ok": true
+    },
+    "ex04_pdf_lab_only": {
+      "elapsed_ms": 1936.4,
+      "model": "claude-haiku-4-5",
+      "input_tokens": 580,
+      "output_tokens": 343,
+      "cache_creation_input_tokens": 0,
+      "cache_read_input_tokens": 0,
+      "raw_chars": 843,
+      "parsed_ok": true
+    },
+    "ex05_voice_symptom": {
+      "elapsed_ms": 2095.8,
+      "model": "claude-haiku-4-5",
+      "input_tokens": 517,
+      "output_tokens": 271,
+      "cache_creation_input_tokens": 0,
+      "cache_read_input_tokens": 0,
+      "raw_chars": 836,
+      "parsed_ok": true
+    },
+    "ex07_polypharmacy": {
+      "elapsed_ms": 2417.1,
+      "model": "claude-haiku-4-5",
+      "input_tokens": 541,
+      "output_tokens": 437,
+      "cache_creation_input_tokens": 0,
+      "cache_read_input_tokens": 0,
+      "raw_chars": 1298,
+      "parsed_ok": true
+    },
+    "ex08_pdf_discharge": {
+      "elapsed_ms": 11866.8,
+      "model": "claude-haiku-4-5",
+      "input_tokens": 629,
+      "output_tokens": 528,
+      "cache_creation_input_tokens": 0,
+      "cache_read_input_tokens": 0,
+      "raw_chars": 1380,
+      "parsed_ok": true
+    },
+    "ex09_empty_input": {
+      "elapsed_ms": 10766.4,
+      "model": "claude-haiku-4-5",
+      "input_tokens": 477,
+      "output_tokens": 73,
+      "cache_creation_input_tokens": 0,
+      "cache_read_input_tokens": 0,
+      "raw_chars": 222,
+      "parsed_ok": true
+    },
+    "ex10_stroke_red_flag": {
+      "elapsed_ms": 13498.9,
+      "model": "claude-haiku-4-5",
+      "input_tokens": 499,
+      "output_tokens": 312,
+      "cache_creation_input_tokens": 0,
+      "cache_read_input_tokens": 0,
+      "raw_chars": 1056,
+      "parsed_ok": true
+    },
+    "ex11_pediatric_vitals": {
+      "elapsed_ms": 11264.9,
+      "model": "claude-haiku-4-5",
+      "input_tokens": 515,
+      "output_tokens": 285,
+      "cache_creation_input_tokens": 0,
+      "cache_read_input_tokens": 0,
+      "raw_chars": 749,
+      "parsed_ok": true
+    },
+    "ex12_complex_oncology": {
+      "elapsed_ms": 12785.2,
+      "model": "claude-haiku-4-5",
+      "input_tokens": 595,
+      "output_tokens": 408,
+      "cache_creation_input_tokens": 0,
+      "cache_read_input_tokens": 0,
+      "raw_chars": 1122,
+      "parsed_ok": true
+    }
+  },
+  "predictions": {
+    "ex01_hypertension_followup": {
+      "diagnoses": [
+        {
+          "condition": "Hypertension",
+          "icd10": "I10",
+          "status": "active",
+          "confidence": 0.9
+        }
+      ],
+      "medications": [
+        {
+          "name": "Lisinopril",
+          "dose": "10mg",
+          "frequency": "daily",
+          "started_at": "",
+          "purpose": "Hypertension management"
+        }
+      ],
+      "vitals": [
+        {
+          "type": "bp",
+          "value": "132/84",
+          "unit": "mmHg",
+          "recorded_at": "2026-03-10"
+        }
+      ],
+      "labs": [],
+      "symptoms": [],
+      "red_flags": [],
+      "raw_summary": "Patient on lisinopril 10mg daily with good adherence presenting for hypertension follow-up. Home BP readings average 132/84 mmHg with no reported adverse effects; BP and metabolic panel to be rechecked in 3 months."
+    },
+    "ex02_diabetes_panel": {
+      "diagnoses": [
+        {
+          "condition": "Type 2 Diabetes Mellitus",
+          "icd10": "E11.9",
+          "status": "active",
+          "confidence": 0.95
+        }
+      ],
+      "medications": [
+        {
+          "name": "Atorvastatin",
+          "dose": "20 mg",
+          "frequency": "once daily at bedtime",
+          "started_at": "",
+          "purpose": "Cholesterol management"
+        },
+        {
+          "name": "Metformin",
+          "dose": "1000 mg",
+          "frequency": "twice daily",
+          "started_at": "",
+          "purpose": "Diabetes glycemic control"
+        }
+      ],
+      "vitals": [
+        {
+          "type": "bp",
+          "value": "138/86",
+          "unit": "mmHg",
+          "recorded_at": ""
+        },
+        {
+          "type": "weight",
+          "value": "87",
+          "unit": "kg",
+          "recorded_at": ""
+        }
+      ],
+      "labs": [
+        {
+          "test": "Hemoglobin A1C",
+          "value": "7.5",
+          "unit": "%",
+          "reference_range": "<5.7",
+          "flag": "high"
+        },
+        {
+          "test": "LDL Cholesterol",
+          "value": "142",
+          "unit": "mg/dL",
+          "reference_range": "<100",
+          "flag": "high"
+        },
+        {
+          "test": "HDL Cholesterol",
+          "value": "41",
+          "unit": "mg/dL",
+          "reference_range": ">40",
+          "flag": "low"
+        },
+        {
+          "test": "Triglycerides",
+          "value": "168",
+          "unit": "mg/dL",
+          "reference_range": "<150",
+          "flag": "high"
+        },
+        {
+          "test": "Creatinine",
+          "value": "1.0",
+          "unit": "mg/dL",
+          "reference_range": "0.7-1.3",
+          "flag": "normal"
+        },
+        {
+          "test": "eGFR",
+          "value": "78",
+          "unit": "mL/min/1.73m\u00b2",
+          "reference_range": ">60",
+          "flag": "normal"
+        }
+      ],
+      "symptoms": [],
+      "red_flags": [
+        {
+          "finding": "A1C increase from 6.9% to 7.5%",
+          "reason": "Worsening glycemic control despite therapy",
+          "urgency": "soon"
+        },
+        {
+          "finding": "Elevated blood pressure 138/86 mmHg",
+          "reason": "Stage 1 hypertension in diabetic patient",
+          "urgency": "soon"
+        }
+      ],
+      "raw_summary": "Quarterly diabetes review showing worsening glycemic control with A1C rise to 7.5% and dyslipidemia. Patient started on atorvastatin and metformin dose increased for better disease management."
+    },
+    "ex03_chest_pain_red_flag": {
+      "diagnoses": [
+        {
+          "condition": "Acute ST-elevation myocardial infarction (STEMI)",
+          "icd10": "I21.02",
+          "status": "suspected",
+          "confidence": 0.95
+        }
+      ],
+      "medications": [],
+      "vitals": [
+        {
+          "type": "bp",
+          "value": "158/96",
+          "unit": "mmHg",
+          "recorded_at": ""
+        },
+        {
+          "type": "hr",
+          "value": "102",
+          "unit": "bpm",
+          "recorded_at": ""
+        }
+      ],
+      "labs": [
+        {
+          "test": "Troponin",
+          "value": "",
+          "unit": "",
+          "reference_range": "",
+          "flag": "normal"
+        }
+      ],
+      "symptoms": [
+        {
+          "description": "Substernal chest pain radiating to left arm",
+          "onset": "2 hours ago",
+          "severity": "severe"
+        },
+        {
+          "description": "Diaphoresis",
+          "onset": "2 hours ago",
+          "severity": "moderate"
+        }
+      ],
+      "red_flags": [
+        {
+          "finding": "ST elevation in precordial leads V2-V4",
+          "reason": "Classic EKG finding for anterior wall STEMI",
+          "urgency": "emergent"
+        },
+        {
+          "finding": "Elevated blood pressure and heart rate",
+          "reason": "Sympathetic response to acute myocardial infarction",
+          "urgency": "emergent"
+        }
+      ],
+      "raw_summary": "Patient presenting to ED with acute onset substernal chest pain radiating to left arm with diaphoresis and EKG findings consistent with anterior wall STEMI; troponin pending."
+    },
+    "ex04_pdf_lab_only": {
+      "diagnoses": [],
+      "medications": [],
+      "vitals": [],
+      "labs": [
+        {
+          "test": "TSH",
+          "value": "4.8",
+          "unit": "mIU/L",
+          "reference_range": "0.4-4.0",
+          "flag": "high"
+        },
+        {
+          "test": "Free T4",
+          "value": "1.1",
+          "unit": "ng/dL",
+          "reference_range": "0.8-1.8",
+          "flag": "normal"
+        },
+        {
+          "test": "Vitamin D 25-OH",
+          "value": "18",
+          "unit": "ng/mL",
+          "reference_range": "30-100",
+          "flag": "low"
+        },
+        {
+          "test": "Ferritin",
+          "value": "22",
+          "unit": "ng/mL",
+          "reference_range": "24-336",
+          "flag": "low"
+        }
+      ],
+      "symptoms": [],
+      "red_flags": [],
+      "raw_summary": "Laboratory panel from April 22, 2026 shows elevated TSH at 4.8 mIU/L with low vitamin D and ferritin levels, while free T4 remains normal."
+    },
+    "ex05_voice_symptom": {
+      "diagnoses": [
+        {
+          "condition": "Headache",
+          "icd10": "R51.9",
+          "status": "active",
+          "confidence": 0.9
+        }
+      ],
+      "medications": [],
+      "vitals": [],
+      "labs": [],
+      "symptoms": [
+        {
+          "description": "Headaches",
+          "onset": "5 days ago",
+          "severity": "severe"
+        },
+        {
+          "description": "Photophobia (light sensitivity)",
+          "onset": "5 days ago",
+          "severity": "moderate"
+        }
+      ],
+      "red_flags": [
+        {
+          "finding": "Headache duration >3 days with photophobia",
+          "reason": "Possible migraine or other secondary headache disorder requiring evaluation",
+          "urgency": "soon"
+        }
+      ],
+      "raw_summary": "Patient reports severe headaches for five days with morning onset, photophobia, but no fever or meningeal signs. No current medications reported."
+    },
+    "ex06_image_skin": {},
+    "ex07_polypharmacy": {
+      "diagnoses": [],
+      "medications": [
+        {
+          "name": "Warfarin",
+          "dose": "5mg",
+          "frequency": "once daily",
+          "started_at": "",
+          "purpose": "anticoagulation"
+        },
+        {
+          "name": "Aspirin",
+          "dose": "81mg",
+          "frequency": "once daily",
+          "started_at": "",
+          "purpose": "antiplatelet"
+        },
+        {
+          "name": "Ibuprofen",
+          "dose": "600mg",
+          "frequency": "three times daily as needed",
+          "started_at": "",
+          "purpose": "pain/inflammation"
+        },
+        {
+          "name": "Lisinopril",
+          "dose": "20mg",
+          "frequency": "once daily",
+          "started_at": "",
+          "purpose": "hypertension/heart failure"
+        },
+        {
+          "name": "Metformin",
+          "dose": "1000mg",
+          "frequency": "twice daily",
+          "started_at": "",
+          "purpose": "diabetes"
+        },
+        {
+          "name": "Atorvastatin",
+          "dose": "40mg",
+          "frequency": "once daily at bedtime",
+          "started_at": "",
+          "purpose": "cholesterol"
+        }
+      ],
+      "vitals": [],
+      "labs": [],
+      "symptoms": [],
+      "red_flags": [],
+      "raw_summary": "Patient is on a multi-drug regimen including anticoagulation with warfarin, antiplatelet therapy with aspirin, and chronic disease management medications for hypertension, diabetes, and dyslipidemia."
+    },
+    "ex08_pdf_discharge": {
+      "diagnoses": [
+        {
+          "condition": "Community-acquired pneumonia",
+          "icd10": "J18.9",
+          "status": "active",
+          "confidence": 0.95
+        }
+      ],
+      "medications": [
+        {
+          "name": "Amoxicillin-clavulanate",
+          "dose": "875mg",
+          "frequency": "BID",
+          "started_at": "2026-04-28",
+          "purpose": "Community-acquired pneumonia treatment"
+        },
+        {
+          "name": "Lisinopril",
+          "dose": "10mg",
+          "frequency": "QD",
+          "started_at": "",
+          "purpose": "Chronic antihypertensive therapy"
+        }
+      ],
+      "vitals": [
+        {
+          "type": "bp",
+          "value": "124/78",
+          "unit": "mmHg",
+          "recorded_at": "2026-05-01"
+        },
+        {
+          "type": "hr",
+          "value": "76",
+          "unit": "bpm",
+          "recorded_at": "2026-05-01"
+        },
+        {
+          "type": "spo2",
+          "value": "96",
+          "unit": "%",
+          "recorded_at": "2026-05-01"
+        },
+        {
+          "type": "temp",
+          "value": "98.2",
+          "unit": "\u00b0F",
+          "recorded_at": "2026-05-01"
+        }
+      ],
+      "labs": [],
+      "symptoms": [
+        {
+          "description": "Fever",
+          "onset": "2026-04-27",
+          "severity": "mild"
+        }
+      ],
+      "red_flags": [],
+      "raw_summary": "Patient admitted with community-acquired pneumonia, treated with IV antibiotics for 4 days then switched to oral amoxicillin-clavulanate, discharged afebrile with stable vitals on 2026-05-01."
+    },
+    "ex09_empty_input": {
+      "diagnoses": [],
+      "medications": [],
+      "vitals": [],
+      "labs": [],
+      "symptoms": [],
+      "red_flags": [],
+      "raw_summary": "Patient reports no complaints and feels well today with no acute concerns noted."
+    },
+    "ex10_stroke_red_flag": {
+      "diagnoses": [
+        {
+          "condition": "Suspected acute stroke",
+          "icd10": "I63.9",
+          "status": "suspected",
+          "confidence": 0.85
+        }
+      ],
+      "medications": [],
+      "vitals": [],
+      "labs": [],
+      "symptoms": [
+        {
+          "description": "Right arm weakness",
+          "onset": "1 hour ago",
+          "severity": "moderate"
+        },
+        {
+          "description": "Right leg weakness",
+          "onset": "1 hour ago",
+          "severity": "moderate"
+        },
+        {
+          "description": "Slurred speech",
+          "onset": "1 hour ago",
+          "severity": "moderate"
+        }
+      ],
+      "red_flags": [
+        {
+          "finding": "Acute unilateral motor weakness and speech difficulty",
+          "reason": "Classic presentation concerning for acute cerebrovascular event (stroke); time-sensitive emergency requiring immediate neuroimaging and evaluation",
+          "urgency": "emergent"
+        }
+      ],
+      "raw_summary": "Grandmother with acute onset of right-sided weakness and slurred speech starting one hour ago, concerning for acute stroke requiring emergent evaluation."
+    },
+    "ex11_pediatric_vitals": {
+      "diagnoses": [],
+      "medications": [],
+      "vitals": [
+        {
+          "type": "bp",
+          "value": "95/60",
+          "unit": "mmHg",
+          "recorded_at": ""
+        },
+        {
+          "type": "hr",
+          "value": "96",
+          "unit": "bpm",
+          "recorded_at": ""
+        },
+        {
+          "type": "temp",
+          "value": "98.4",
+          "unit": "F",
+          "recorded_at": ""
+        },
+        {
+          "type": "weight",
+          "value": "17.2",
+          "unit": "kg",
+          "recorded_at": ""
+        },
+        {
+          "type": "bmi",
+          "value": "102",
+          "unit": "cm",
+          "recorded_at": ""
+        }
+      ],
+      "labs": [],
+      "symptoms": [],
+      "red_flags": [],
+      "raw_summary": "Routine well-child visit for a 4-year-old with normal vital signs and anthropometric measurements."
+    },
+    "ex12_complex_oncology": {
+      "diagnoses": [
+        {
+          "condition": "Invasive Ductal Carcinoma (IDC), stage IIB, left breast, ER+/PR+/HER2-",
+          "icd10": "C50.912",
+          "status": "active",
+          "confidence": 0.95
+        }
+      ],
+      "medications": [
+        {
+          "name": "tamoxifen",
+          "dose": "20 mg",
+          "frequency": "once daily",
+          "started_at": "",
+          "purpose": "hormonal therapy for ER+/PR+ breast cancer"
+        }
+      ],
+      "vitals": [],
+      "labs": [
+        {
+          "test": "CA 27-29",
+          "value": "18",
+          "unit": "U/mL",
+          "reference_range": "normal",
+          "flag": "normal"
+        },
+        {
+          "test": "Liver Function Tests (LFTs)",
+          "value": "",
+          "unit": "",
+          "reference_range": "within normal limits",
+          "flag": "normal"
+        }
+      ],
+      "symptoms": [
+        {
+          "description": "hot flashes",
+          "onset": "",
+          "severity": "mild"
+        }
+      ],
+      "red_flags": [],
+      "raw_summary": "Patient with stage IIB ER+/PR+/HER2- invasive ductal carcinoma of left breast s/p mastectomy and axillary lymph node dissection, currently on tamoxifen therapy with mild hot flashes and normal tumor markers."
+    }
+  }
+}

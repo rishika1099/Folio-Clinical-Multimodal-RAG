@@ -1,18 +1,20 @@
 # Folio — Evaluation Report
 
-_Generated 2026-05-27T04:04:35.328143Z · 12 extraction examples · 10 RAG queries · 6 PII cases · 3 chat probes_
+_Generated 2026-05-27T04:37:06.546000Z · 12 extraction examples · 10 RAG queries · 6 PII cases · 3 chat probes_
 
-This report runs the eval harness against a fixed synthetic gold dataset. All metrics are reproducible — `python -m app.eval.runner` regenerates this file.
+**Extraction predictions: LIVE** — `claude-haiku-4-5` on 12 examples (5,977 input + 4,236 output tokens).
+
+All metrics are reproducible — `python -m app.eval.runner` regenerates this file.
 
 ## Headline numbers
 
 | Area | Metric | Value |
 |---|---|---|
-| Extraction | Micro-F1 (all sections) | **94.7%** |
-| Extraction | Macro-F1 (mean across sections) | **95.8%** |
+| Extraction | Micro-F1 (all sections) | **81.8%** |
+| Extraction | Macro-F1 (mean across sections) | **73.5%** |
 | Extraction | Schema validity | 100.0% |
-| Extraction | Hallucination rate | 1.2% |
-| Extraction | Coverage of gold items | 94.0% |
+| Extraction | Hallucination rate | 0.0% |
+| Extraction | Coverage of gold items | 67.6% |
 | RAG | Recall@1 | **30.0%** |
 | RAG | Recall@5 | 50.0% |
 | RAG | MRR | 0.407 |
@@ -27,9 +29,9 @@ This report runs the eval harness against a fixed synthetic gold dataset. All me
 | Chat | Citation correctness | 100.0% |
 | Chat | Red-flag detection recall | 100.0% |
 | Chat | Hallucination guard | 100.0% |
-| Latency | PII scrub p50 / p95 | 0.038 ms / 0.039 ms |
-| Latency | Hash-embed p50 (per doc) | 0.068 ms |
-| Latency | Cosine search p50 over corpus | 0.943 ms |
+| Latency | PII scrub p50 / p95 | 0.042 ms / 0.044 ms |
+| Latency | Hash-embed p50 (per doc) | 0.072 ms |
+| Latency | Cosine search p50 over corpus | 0.967 ms |
 
 ## 1. Extraction quality
 
@@ -37,29 +39,29 @@ Per-section precision / recall / F1, aggregated across the gold corpus. Items ar
 
 | Section | TP | FP | FN | Precision | Recall | F1 |
 |---|---:|---:|---:|---:|---:|---:|
-| diagnoses | 5 | 0 | 0 | 100.0% | 100.0% | **100.0%** |
-| medications | 12 | 1 | 0 | 92.3% | 100.0% | **96.0%** |
-| vitals | 11 | 0 | 2 | 100.0% | 84.6% | **91.7%** |
-| labs | 9 | 0 | 1 | 100.0% | 90.0% | **94.7%** |
-| symptoms | 6 | 0 | 1 | 100.0% | 85.7% | **92.3%** |
-| red_flags | 2 | 0 | 0 | 100.0% | 100.0% | **100.0%** |
+| diagnoses | 4 | 3 | 1 | 57.1% | 80.0% | **66.7%** |
+| medications | 12 | 0 | 0 | 100.0% | 100.0% | **100.0%** |
+| vitals | 13 | 1 | 0 | 92.9% | 100.0% | **96.3%** |
+| labs | 9 | 4 | 1 | 69.2% | 90.0% | **78.3%** |
+| symptoms | 6 | 3 | 1 | 66.7% | 85.7% | **75.0%** |
+| red_flags | 1 | 5 | 1 | 16.7% | 50.0% | **25.0%** |
 
 ### By modality
 
 | Modality | N | Macro-F1 |
 |---|---:|---:|
-| text | 6 | 99.5% |
-| pdf | 3 | 98.1% |
-| voice | 2 | 97.2% |
-| image | 1 | 100.0% |
+| text | 6 | 89.7% |
+| pdf | 3 | 92.6% |
+| voice | 2 | 62.2% |
+| image | 1 | 83.3% |
 
 ### By difficulty
 
 | Tag | N | Macro-F1 |
 |---|---:|---:|
-| easy | 4 | 100.0% |
-| medium | 4 | 99.2% |
-| hard | 4 | 97.2% |
+| easy | 4 | 89.8% |
+| medium | 4 | 90.5% |
+| hard | 4 | 75.6% |
 
 ## 2. RAG retrieval
 
@@ -73,8 +75,8 @@ Top-k retrieval over the gold corpus for each canonical query. Embeddings are de
 | Recall@10 | 100.0% |
 | MRR | 0.407 |
 | NDCG@10 | 0.538 |
-| Mean embed time per query | 0.05 ms |
-| Mean cosine search time per query | 0.914 ms |
+| Mean embed time per query | 0.06 ms |
+| Mean cosine search time per query | 1.029 ms |
 
 ### Per-query top-5
 
@@ -129,9 +131,9 @@ Sampled n=50 runs per stage on local hardware.
 
 | Stage | Mean | p50 | p95 | p99 |
 |---|---:|---:|---:|---:|
-| PII scrub | 0.038 ms | 0.038 ms | 0.039 ms | 0.040 ms |
-| Hash embed (per doc) | 0.068 ms | 0.068 ms | 0.070 ms | 0.071 ms |
-| Cosine search (full corpus) | 0.939 ms | 0.943 ms | 0.979 ms | 0.985 ms |
+| PII scrub | 0.042 ms | 0.042 ms | 0.044 ms | 0.046 ms |
+| Hash embed (per doc) | 0.079 ms | 0.072 ms | 0.092 ms | 0.197 ms |
+| Cosine search (full corpus) | 1.000 ms | 0.967 ms | 1.050 ms | 1.424 ms |
 
 ## 6. Chat groundedness
 

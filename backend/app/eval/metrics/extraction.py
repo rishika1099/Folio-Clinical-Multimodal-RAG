@@ -24,10 +24,44 @@ from ..dataset import EXTRACTION_GOLD, GoldExample
 SECTIONS = ("diagnoses", "medications", "vitals", "labs", "symptoms", "red_flags")
 
 
-# Per-section equality predicates. Two items count as a match if their
-# *canonical key* matches; values may vary in formatting.
+# Sections that use exact-key matching (concrete, low-variation): the
+# canonical key reliably distinguishes items. Sections NOT in this set
+# fall back to fuzzy token-overlap matching to absorb synonyms and
+# rephrasings ("Essential hypertension" ≈ "Hypertension",
+# "HbA1c" ≈ "Hemoglobin A1C").
+EXACT_SECTIONS = {"medications", "vitals"}
+
+
+_STOP = {"the","a","an","of","in","on","at","with","and","or","for","by","to",
+         "is","was","were","be","been","has","have","had"}
+_QUAL = {"essential","acute","chronic","suspected","mild","severe","moderate",
+         "possible","probable","stage","unilateral","bilateral","right","left",
+         "primary","secondary","s/p","new","recent","increased","decreased"}
+
+
 def _norm(s: str) -> str:
     return (s or "").strip().lower()
+
+
+def _tokens(text: str) -> set[str]:
+    """Significant content tokens from a clinical phrase."""
+    raw = _norm(text)
+    for ch in "().,;:[]/-":
+        raw = raw.replace(ch, " ")
+    out: set[str] = set()
+    for t in raw.split():
+        if not t or t in _STOP or t in _QUAL:
+            continue
+        out.add(t)
+    return out
+
+
+def _overlap(a: str, b: str) -> float:
+    """Symmetric Jaccard-like overlap: |A ∩ B| / min(|A|, |B|)."""
+    ta, tb = _tokens(a), _tokens(b)
+    if not ta or not tb:
+        return 0.0
+    return len(ta & tb) / min(len(ta), len(tb))
 
 
 def _diag_key(d: dict) -> str:
@@ -95,11 +129,57 @@ def compare_section(gold: list[dict], pred: list[dict], key_fn: Callable[[dict],
     )
 
 
+# Text-for-overlap accessors for the fuzzy sections.
+TEXT_FN: dict[str, Callable[[dict], str]] = {
+    "diagnoses":  lambda d: d.get("condition", ""),
+    "labs":       lambda l: l.get("test", ""),
+    "symptoms":   lambda s: s.get("description", ""),
+    "red_flags":  lambda f: f.get("finding", ""),
+}
+
+
+def compare_section_fuzzy(
+    gold: list[dict], pred: list[dict], text_fn: Callable[[dict], str],
+    thresh: float = 0.5,
+) -> PRF:
+    """Greedy bipartite matching by token overlap. Each predicted item
+    is matched to the best-overlapping unmatched gold item; a match
+    counts if overlap ≥ thresh. Unmatched preds are FP; unmatched gold
+    are FN. Order-independent."""
+    g_texts = [text_fn(x) for x in gold]
+    p_texts = [text_fn(x) for x in pred]
+    used = [False] * len(g_texts)
+    tp = fp = 0
+    for pt in p_texts:
+        if not pt:
+            continue
+        best_i = -1
+        best_ov = 0.0
+        for i, gt in enumerate(g_texts):
+            if used[i] or not gt:
+                continue
+            ov = _overlap(pt, gt)
+            if ov > best_ov:
+                best_ov, best_i = ov, i
+        if best_i >= 0 and best_ov >= thresh:
+            used[best_i] = True
+            tp += 1
+        else:
+            fp += 1
+    fn = used.count(False) - sum(1 for g in g_texts if not g)
+    return PRF(tp=tp, fp=fp, fn=max(0, fn))
+
+
 def compare_example(gold: dict, pred: dict) -> dict[str, PRF]:
-    return {
-        sec: compare_section(gold.get(sec, []), pred.get(sec, []), KEY_FN[sec])
-        for sec in SECTIONS
-    }
+    out: dict[str, PRF] = {}
+    for sec in SECTIONS:
+        if sec in EXACT_SECTIONS:
+            out[sec] = compare_section(gold.get(sec, []), pred.get(sec, []), KEY_FN[sec])
+        else:
+            out[sec] = compare_section_fuzzy(
+                gold.get(sec, []), pred.get(sec, []), TEXT_FN[sec],
+            )
+    return out
 
 
 def is_schema_valid(pred: dict) -> bool:
