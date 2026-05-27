@@ -241,6 +241,8 @@ function Dots() {
 
 // ─── capabilities ──────────────────────────────────────────────────────────
 function Capabilities() {
+  // Top border ties the section visually to the rest of the page —
+  // matches the `border-y` treatment on HowItWorks below.
   const items = [
     {
       title: "Multimodal ingest",
@@ -280,7 +282,8 @@ function Capabilities() {
     },
   ];
   return (
-    <section className="max-w-6xl mx-auto px-6 py-12 sm:py-16">
+    <section className="border-t border-ink-700">
+      <div className="max-w-6xl mx-auto px-6 py-12 sm:py-16">
       <div className="max-w-2xl mb-10">
         <div className="text-[10.5px] uppercase tracking-[0.22em] text-accent-deep font-semibold">
           What Folio does
@@ -295,6 +298,7 @@ function Capabilities() {
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {items.map(i => <CapCard key={i.title} {...i} />)}
+      </div>
       </div>
     </section>
   );
