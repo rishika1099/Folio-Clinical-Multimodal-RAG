@@ -10,12 +10,13 @@
 html, body, #root { height: 100%; }
 body {
   font-feature-settings: "ss01", "cv11";
-  background:
-    radial-gradient(1100px 500px at 90% -10%, rgba(122,171,165,0.18), transparent 55%),
-    radial-gradient(900px 480px at -10% 110%, rgba(225,160,110,0.14), transparent 55%),
-    radial-gradient(700px 400px at 60% 100%, rgba(156,145,192,0.10), transparent 60%),
-    var(--grain),
-    #fbf9f3;
+  /* Flat warm-cream wash. The old multi-radial-gradient was creating a
+     visible diagonal "seam" wherever a radial gradient's transparent
+     stop fell. A single subtle vertical wash keeps the warmth without
+     introducing edges that cut through long pages. */
+  background-color: #fbf9f3;
+  background-image: var(--grain);
+  background-attachment: fixed;
 }
 
 /* tabular numerals everywhere data lives */
