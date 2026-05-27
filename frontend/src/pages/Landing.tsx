@@ -69,15 +69,7 @@ function Hero() {
           <p className="text-[16px] sm:text-[17px] text-ink-200 mt-5 leading-relaxed max-w-xl">
             Folio is a personal medical record companion. Drop in a lab PDF, snap a photo of a paper report or skin condition, dictate symptoms, paste a clinic note. Folio extracts the structure, builds your longitudinal timeline, and answers questions about your own record in chat.
           </p>
-          <div className="mt-7 flex flex-wrap gap-3">
-            <Link to="/signup" className="btn btn-primary text-[14px] py-2.5 px-5">
-              Create your account
-            </Link>
-            <Link to="/login" className="btn btn-ghost text-[14px] py-2.5 px-5">
-              I already have an account
-            </Link>
-          </div>
-          <p className="text-[12px] text-ink-300 mt-4">
+          <p className="text-[12.5px] text-ink-300 mt-5">
             Free · each user&apos;s record is fully private · not medical advice.
           </p>
         </div>

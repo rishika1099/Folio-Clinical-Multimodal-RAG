@@ -8,6 +8,7 @@ const NAV = [
   { to: "/timeline",    label: "Timeline",    icon: <IconTime /> },
   { to: "/suggestions", label: "Insights",    icon: <IconSpark /> },
   { to: "/dev",         label: "Engine",      icon: <IconCode /> },
+  { to: "/benchmarks",  label: "Benchmarks",  icon: <IconChart /> },
 ];
 
 export function Shell({ children }: { children: React.ReactNode }) {
@@ -133,3 +134,4 @@ function IconTime() { return <svg className={sIcon} viewBox="0 0 24 24" fill="no
 function IconSpark() { return <svg className={sIcon} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6"><path d="M12 3v4M12 17v4M3 12h4M17 12h4M6 6l2.8 2.8M15.2 15.2 18 18M6 18l2.8-2.8M15.2 8.8 18 6"/></svg>; }
 function IconCode() { return <svg className={sIcon} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7"><path d="m9 8-4 4 4 4M15 8l4 4-4 4" strokeLinecap="round" strokeLinejoin="round"/></svg>; }
 function IconChat() { return <svg className={sIcon} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7"><path d="M4 6.5A2.5 2.5 0 0 1 6.5 4h11A2.5 2.5 0 0 1 20 6.5v8a2.5 2.5 0 0 1-2.5 2.5H10l-4 3.5v-3.5h-.5A1.5 1.5 0 0 1 4 15.5z" strokeLinejoin="round"/></svg>; }
+function IconChart() { return <svg className={sIcon} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2" strokeLinecap="round"/></svg>; }

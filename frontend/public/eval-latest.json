@@ -1,0 +1,548 @@
+{
+  "meta": {
+    "generated_at": "2026-05-27T04:04:35.328143Z",
+    "n_extraction_examples": 12,
+    "n_rag_queries": 10,
+    "n_pii_cases": 6,
+    "n_chat_probes": 3,
+    "modality_counts": {
+      "text": 6,
+      "pdf": 3,
+      "voice": 2,
+      "image": 1
+    },
+    "live_embed": false
+  },
+  "extraction": {
+    "per_section": {
+      "diagnoses": {
+        "tp": 5,
+        "fp": 0,
+        "fn": 0
+      },
+      "medications": {
+        "tp": 12,
+        "fp": 1,
+        "fn": 0
+      },
+      "vitals": {
+        "tp": 11,
+        "fp": 0,
+        "fn": 2
+      },
+      "labs": {
+        "tp": 9,
+        "fp": 0,
+        "fn": 1
+      },
+      "symptoms": {
+        "tp": 6,
+        "fp": 0,
+        "fn": 1
+      },
+      "red_flags": {
+        "tp": 2,
+        "fp": 0,
+        "fn": 0
+      }
+    },
+    "schema_valid": 1.0,
+    "hallucination": 0.011904761904761904,
+    "coverage": 0.940079365079365,
+    "n": 12,
+    "micro_f1": 0.9473684210526316,
+    "macro_f1": 0.9578520017993702,
+    "by_modality": {
+      "text": {
+        "n": 6,
+        "macro_f1": 0.9947768281101615
+      },
+      "pdf": {
+        "n": 3,
+        "macro_f1": 0.9814814814814815
+      },
+      "voice": {
+        "n": 2,
+        "macro_f1": 0.9722222222222223
+      },
+      "image": {
+        "n": 1,
+        "macro_f1": 1.0
+      }
+    },
+    "by_difficulty": {
+      "easy": {
+        "n": 4,
+        "macro_f1": 1.0
+      },
+      "medium": {
+        "n": 4,
+        "macro_f1": 0.9921652421652422
+      },
+      "hard": {
+        "n": 4,
+        "macro_f1": 0.9722222222222223
+      }
+    }
+  },
+  "rag": {
+    "n_queries": 10,
+    "corpus_size": 12,
+    "recall_at": {
+      "1": 0.3,
+      "3": 0.3,
+      "5": 0.5,
+      "10": 1.0
+    },
+    "mrr": 0.4065079365079365,
+    "ndcg10": 0.5379647675725726,
+    "mean_embed_ms": 0.052270899914219626,
+    "mean_search_ms": 0.9143876000962337,
+    "per_query": [
+      {
+        "query": "When was my last A1C and what was it?",
+        "relevant": [
+          "ex02_diabetes_panel"
+        ],
+        "top5": [
+          "ex10_stroke_red_flag",
+          "ex05_voice_symptom",
+          "ex08_pdf_discharge",
+          "ex04_pdf_lab_only",
+          "ex01_hypertension_followup"
+        ],
+        "first_hit_rank": 10
+      },
+      {
+        "query": "Is my blood pressure trending up?",
+        "relevant": [
+          "ex01_hypertension_followup",
+          "ex02_diabetes_panel",
+          "ex11_pediatric_vitals"
+        ],
+        "top5": [
+          "ex05_voice_symptom",
+          "ex03_chest_pain_red_flag",
+          "ex10_stroke_red_flag",
+          "ex01_hypertension_followup",
+          "ex02_diabetes_panel"
+        ],
+        "first_hit_rank": 4
+      },
+      {
+        "query": "What medications am I on for diabetes?",
+        "relevant": [
+          "ex02_diabetes_panel",
+          "ex07_polypharmacy"
+        ],
+        "top5": [
+          "ex05_voice_symptom",
+          "ex12_complex_oncology",
+          "ex03_chest_pain_red_flag",
+          "ex07_polypharmacy",
+          "ex01_hypertension_followup"
+        ],
+        "first_hit_rank": 4
+      },
+      {
+        "query": "Have I had a stroke or stroke symptoms?",
+        "relevant": [
+          "ex10_stroke_red_flag"
+        ],
+        "top5": [
+          "ex01_hypertension_followup",
+          "ex02_diabetes_panel",
+          "ex03_chest_pain_red_flag",
+          "ex04_pdf_lab_only",
+          "ex05_voice_symptom"
+        ],
+        "first_hit_rank": 10
+      },
+      {
+        "query": "Tell me about my thyroid labs.",
+        "relevant": [
+          "ex04_pdf_lab_only"
+        ],
+        "top5": [
+          "ex10_stroke_red_flag",
+          "ex05_voice_symptom",
+          "ex06_image_skin",
+          "ex11_pediatric_vitals",
+          "ex08_pdf_discharge"
+        ],
+        "first_hit_rank": 9
+      },
+      {
+        "query": "What's the skin lesion on my arm?",
+        "relevant": [
+          "ex06_image_skin"
+        ],
+        "top5": [
+          "ex06_image_skin",
+          "ex05_voice_symptom",
+          "ex08_pdf_discharge",
+          "ex12_complex_oncology",
+          "ex01_hypertension_followup"
+        ],
+        "first_hit_rank": 1
+      },
+      {
+        "query": "Was I hospitalised recently?",
+        "relevant": [
+          "ex08_pdf_discharge"
+        ],
+        "top5": [
+          "ex12_complex_oncology",
+          "ex01_hypertension_followup",
+          "ex02_diabetes_panel",
+          "ex03_chest_pain_red_flag",
+          "ex04_pdf_lab_only"
+        ],
+        "first_hit_rank": 9
+      },
+      {
+        "query": "Am I on warfarin?",
+        "relevant": [
+          "ex07_polypharmacy"
+        ],
+        "top5": [
+          "ex02_diabetes_panel",
+          "ex01_hypertension_followup",
+          "ex03_chest_pain_red_flag",
+          "ex04_pdf_lab_only",
+          "ex05_voice_symptom"
+        ],
+        "first_hit_rank": 7
+      },
+      {
+        "query": "Should I worry about chest pain?",
+        "relevant": [
+          "ex03_chest_pain_red_flag"
+        ],
+        "top5": [
+          "ex03_chest_pain_red_flag",
+          "ex10_stroke_red_flag",
+          "ex02_diabetes_panel",
+          "ex01_hypertension_followup",
+          "ex04_pdf_lab_only"
+        ],
+        "first_hit_rank": 1
+      },
+      {
+        "query": "What's my cancer treatment plan?",
+        "relevant": [
+          "ex12_complex_oncology"
+        ],
+        "top5": [
+          "ex12_complex_oncology",
+          "ex06_image_skin",
+          "ex05_voice_symptom",
+          "ex01_hypertension_followup",
+          "ex02_diabetes_panel"
+        ],
+        "first_hit_rank": 1
+      }
+    ]
+  },
+  "consensus": {
+    "n_examples": 12,
+    "fleiss_kappa": -0.06681681681681727,
+    "unanimous_rate": 0.40816326530612246,
+    "convergence_rate": 0.8571428571428571,
+    "cluster_correctness": 1.0,
+    "high_conf_recall_lift": 0.1020408163265305,
+    "mean_single_recall": 0.7551020408163266,
+    "consensus_recall": 0.8571428571428571,
+    "cost_ratio": 3.0,
+    "per_example": [
+      {
+        "id": "ex01_hypertension_followup",
+        "fields": 3,
+        "correct_choices": 3
+      },
+      {
+        "id": "ex02_diabetes_panel",
+        "fields": 10,
+        "correct_choices": 10
+      },
+      {
+        "id": "ex03_chest_pain_red_flag",
+        "fields": 6,
+        "correct_choices": 6
+      },
+      {
+        "id": "ex04_pdf_lab_only",
+        "fields": 4,
+        "correct_choices": 4
+      },
+      {
+        "id": "ex05_voice_symptom",
+        "fields": 1,
+        "correct_choices": 1
+      },
+      {
+        "id": "ex06_image_skin",
+        "fields": 1,
+        "correct_choices": 1
+      },
+      {
+        "id": "ex07_polypharmacy",
+        "fields": 6,
+        "correct_choices": 6
+      },
+      {
+        "id": "ex08_pdf_discharge",
+        "fields": 7,
+        "correct_choices": 7
+      },
+      {
+        "id": "ex09_empty_input",
+        "fields": 0,
+        "correct_choices": 0
+      },
+      {
+        "id": "ex10_stroke_red_flag",
+        "fields": 3,
+        "correct_choices": 3
+      },
+      {
+        "id": "ex11_pediatric_vitals",
+        "fields": 4,
+        "correct_choices": 4
+      },
+      {
+        "id": "ex12_complex_oncology",
+        "fields": 4,
+        "correct_choices": 4
+      }
+    ]
+  },
+  "pii": {
+    "n_cases": 6,
+    "scrub_recall": 1.0,
+    "content_preservation": 1.0,
+    "by_class": {
+      "SSN": {
+        "hits": 2,
+        "total": 2,
+        "recall": 1.0
+      },
+      "MRN": {
+        "hits": 2,
+        "total": 2,
+        "recall": 1.0
+      },
+      "DOB": {
+        "hits": 1,
+        "total": 1,
+        "recall": 1.0
+      },
+      "Email": {
+        "hits": 2,
+        "total": 2,
+        "recall": 1.0
+      },
+      "Phone": {
+        "hits": 3,
+        "total": 3,
+        "recall": 1.0
+      }
+    },
+    "failures": []
+  },
+  "latency": {
+    "pii_scrub": {
+      "samples": [
+        0.04212499970890349,
+        0.03966699978263932,
+        0.03870799992000684,
+        0.0380000001314329,
+        0.03812499971900252,
+        0.037958000120852375,
+        0.03812500017374987,
+        0.037708000036218436,
+        0.038209000194910914,
+        0.038209000194910914,
+        0.037958000120852375,
+        0.03812500017374987,
+        0.03820899974016356,
+        0.0380000001314329,
+        0.03837500025838381,
+        0.03829199977190001,
+        0.03804200014201342,
+        0.0380000001314329,
+        0.038249999761319486,
+        0.03812500017374987,
+        0.03841600027953973,
+        0.0384579998353729,
+        0.03841699981421698,
+        0.03804200014201342,
+        0.037958000120852375,
+        0.038249999761319486,
+        0.038208000205486314,
+        0.03804100015258882,
+        0.03799999967668555,
+        0.03825000021606684,
+        0.03854099986710935,
+        0.03829199977190001,
+        0.0380000001314329,
+        0.0380000001314329,
+        0.03833299979305593,
+        0.03829099978247541,
+        0.038333000247803284,
+        0.0380000001314329,
+        0.038207999750738963,
+        0.037958000120852375,
+        0.03812499971900252,
+        0.03812500017374987,
+        0.038208000205486314,
+        0.03816599974015844,
+        0.038208000205486314,
+        0.03883300041707116,
+        0.03845800029012025,
+        0.038500000300700776,
+        0.038374999803636456,
+        0.03829099978247541
+      ]
+    },
+    "hash_embed": {
+      "samples": [
+        0.06843408334589185,
+        0.06706591667201185,
+        0.0675347500115701,
+        0.06714583332723123,
+        0.0682569999905051,
+        0.06958333331870865,
+        0.06765275001422803,
+        0.06852775000728191,
+        0.06906591666696234,
+        0.068211749976399,
+        0.06807291667125052,
+        0.06879858331861517,
+        0.06699308335100795,
+        0.06775000000895186,
+        0.06880549998792655,
+        0.06826383332736441,
+        0.07069091664864875,
+        0.06819791667567188,
+        0.06783333333260089,
+        0.067607583332574,
+        0.06822225001693975,
+        0.0684514166853963,
+        0.06873958333623402,
+        0.06862500000200573,
+        0.0685034999984661,
+        0.06839583333354919,
+        0.067965249968438,
+        0.0686458333423919,
+        0.06842708334412843,
+        0.06819441667479016,
+        0.06755549998160859,
+        0.06830208333970707,
+        0.0686839999843869,
+        0.06868058335385285,
+        0.06909374997121631,
+        0.06729166667203874,
+        0.07060758332499972,
+        0.06947216669080565,
+        0.06751733330171798,
+        0.06807641667213223,
+        0.06747916665972298,
+        0.06910758334773466,
+        0.06910416664140939,
+        0.06844441668363288,
+        0.067562499983372,
+        0.06912500001969117,
+        0.06977083330639289,
+        0.06948266669345078,
+        0.0692639166572917,
+        0.06847224998788685
+      ]
+    },
+    "cosine_search": {
+      "samples": [
+        0.957875000040076,
+        0.9479159998591058,
+        0.9228750000147556,
+        0.9245840001312899,
+        0.8913339997889125,
+        0.9225830003742885,
+        0.9391249996042461,
+        0.9197090002999175,
+        0.9457090000069002,
+        0.9414159999323601,
+        0.9485000000495347,
+        0.9329170002274623,
+        0.950209000166069,
+        0.9557920002407627,
+        0.9444590000384778,
+        0.9523749999971187,
+        0.8962080000856076,
+        0.9462920002079045,
+        0.9053750000020955,
+        0.8964580001702416,
+        0.9153329997388937,
+        0.8823329999358975,
+        0.9264579998671252,
+        0.9756250001373701,
+        0.9471250000387954,
+        0.8822079998935806,
+        0.9799170002224855,
+        0.9427089999007876,
+        0.9448339997106814,
+        0.9367080001538852,
+        0.9268750000046566,
+        0.8955839998634474,
+        0.9113340001931647,
+        0.9495419999439036,
+        0.9367919997202989,
+        0.976000000264321,
+        0.9656669999458245,
+        0.9112089996961004,
+        0.9553750001032313,
+        0.9592090000296594,
+        0.9605840000403987,
+        0.9223329998349072,
+        0.9251659998881223,
+        0.9690830002000439,
+        0.9533329998703266,
+        0.9668749999036663,
+        0.9794590000637982,
+        0.9355840002172044,
+        0.98474999958853,
+        0.9938750004039321
+      ]
+    }
+  },
+  "chat": {
+    "n_probes": 3,
+    "answer_correctness": 1.0,
+    "citation_correctness": 1.0,
+    "red_flag_recall": 1.0,
+    "hallucination_guard": 1.0,
+    "per_probe": [
+      {
+        "q": "When was my last A1C?",
+        "contains_any": true,
+        "cited_ok": true,
+        "cited": [
+          "ex02_diabetes_panel"
+        ]
+      },
+      {
+        "q": "I'm having sudden right-sided weakness and slurred speech",
+        "contains_any": true,
+        "cited_ok": true,
+        "cited": []
+      },
+      {
+        "q": "What's my LDL right now?",
+        "contains_any": true,
+        "cited_ok": true,
+        "cited": [
+          "ex02_diabetes_panel"
+        ]
+      }
+    ]
+  }
+}

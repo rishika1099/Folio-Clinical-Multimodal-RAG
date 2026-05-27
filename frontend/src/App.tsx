@@ -13,6 +13,7 @@ import DevPage from "./pages/Dev";
 import LoginPage from "./pages/Login";
 import SignupPage from "./pages/Signup";
 import LandingPage from "./pages/Landing";
+import BenchmarksPage from "./pages/Benchmarks";
 
 /**
  * `/` is dual-purpose:
@@ -55,6 +56,7 @@ export default function App() {
               <Route path="/suggestions" element={<SuggestionsPage />} />
               <Route path="/reports/:id" element={<ReportDetailPage />} />
               <Route path="/dev" element={<DevPage />} />
+              <Route path="/benchmarks" element={<BenchmarksPage />} />
             </Routes>
           </Shell>
         </AuthGuard>
