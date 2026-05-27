@@ -29,7 +29,7 @@ class Settings(BaseSettings):
 
     # Model IDs — verified against current 2026 tiers.
     claude_fast_model: str = "claude-haiku-4-5-20251001"
-    claude_strong_model: str = "claude-sonnet-4-6"
+    claude_strong_model: str = "claude-sonnet-4-5"
     openai_fast_model: str = "gpt-4.1-mini"
     openai_strong_model: str = "gpt-4.1"
     openai_transcribe_model: str = "whisper-1"

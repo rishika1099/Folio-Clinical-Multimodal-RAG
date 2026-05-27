@@ -1,0 +1,1638 @@
+{
+  "model": "claude-sonnet-4-5",
+  "n": 30,
+  "total_input_tokens": 24566,
+  "total_output_tokens": 11359,
+  "failed": [],
+  "meta": {
+    "ex01_hypertension_followup": {
+      "elapsed_ms": 4476.1,
+      "model": "claude-sonnet-4-5",
+      "input_tokens": 840,
+      "output_tokens": 279,
+      "cache_creation_input_tokens": 0,
+      "cache_read_input_tokens": 0,
+      "raw_chars": 767,
+      "parsed_ok": true
+    },
+    "ex02_diabetes_panel": {
+      "elapsed_ms": 8690.5,
+      "model": "claude-sonnet-4-5",
+      "input_tokens": 863,
+      "output_tokens": 790,
+      "cache_creation_input_tokens": 0,
+      "cache_read_input_tokens": 0,
+      "raw_chars": 2049,
+      "parsed_ok": true
+    },
+    "ex03_chest_pain_red_flag": {
+      "elapsed_ms": 5532.8,
+      "model": "claude-sonnet-4-5",
+      "input_tokens": 830,
+      "output_tokens": 456,
+      "cache_creation_input_tokens": 0,
+      "cache_read_input_tokens": 0,
+      "raw_chars": 1335,
+      "parsed_ok": true
+    },
+    "ex04_pdf_lab_only": {
+      "elapsed_ms": 4214.8,
+      "model": "claude-sonnet-4-5",
+      "input_tokens": 883,
+      "output_tokens": 336,
+      "cache_creation_input_tokens": 0,
+      "cache_read_input_tokens": 0,
+      "raw_chars": 833,
+      "parsed_ok": true
+    },
+    "ex05_voice_symptom": {
+      "elapsed_ms": 2840.9,
+      "model": "claude-sonnet-4-5",
+      "input_tokens": 820,
+      "output_tokens": 163,
+      "cache_creation_input_tokens": 0,
+      "cache_read_input_tokens": 0,
+      "raw_chars": 497,
+      "parsed_ok": true
+    },
+    "ex07_polypharmacy": {
+      "elapsed_ms": 6362.1,
+      "model": "claude-sonnet-4-5",
+      "input_tokens": 844,
+      "output_tokens": 502,
+      "cache_creation_input_tokens": 0,
+      "cache_read_input_tokens": 0,
+      "raw_chars": 1423,
+      "parsed_ok": true
+    },
+    "ex08_pdf_discharge": {
+      "elapsed_ms": 5762.0,
+      "model": "claude-sonnet-4-5",
+      "input_tokens": 932,
+      "output_tokens": 487,
+      "cache_creation_input_tokens": 0,
+      "cache_read_input_tokens": 0,
+      "raw_chars": 1314,
+      "parsed_ok": true
+    },
+    "ex09_empty_input": {
+      "elapsed_ms": 2803.5,
+      "model": "claude-sonnet-4-5",
+      "input_tokens": 780,
+      "output_tokens": 76,
+      "cache_creation_input_tokens": 0,
+      "cache_read_input_tokens": 0,
+      "raw_chars": 241,
+      "parsed_ok": true
+    },
+    "ex10_stroke_red_flag": {
+      "elapsed_ms": 14485.6,
+      "model": "claude-sonnet-4-5",
+      "input_tokens": 802,
+      "output_tokens": 330,
+      "cache_creation_input_tokens": 0,
+      "cache_read_input_tokens": 0,
+      "raw_chars": 1155,
+      "parsed_ok": true
+    },
+    "ex11_pediatric_vitals": {
+      "elapsed_ms": 8206.0,
+      "model": "claude-sonnet-4-5",
+      "input_tokens": 818,
+      "output_tokens": 254,
+      "cache_creation_input_tokens": 0,
+      "cache_read_input_tokens": 0,
+      "raw_chars": 640,
+      "parsed_ok": true
+    },
+    "ex12_complex_oncology": {
+      "elapsed_ms": 15392.1,
+      "model": "claude-sonnet-4-5",
+      "input_tokens": 898,
+      "output_tokens": 406,
+      "cache_creation_input_tokens": 0,
+      "cache_read_input_tokens": 0,
+      "raw_chars": 1152,
+      "parsed_ok": true
+    },
+    "ex13_thyroid_followup": {
+      "elapsed_ms": 9707.9,
+      "model": "claude-sonnet-4-5",
+      "input_tokens": 841,
+      "output_tokens": 334,
+      "cache_creation_input_tokens": 0,
+      "cache_read_input_tokens": 0,
+      "raw_chars": 914,
+      "parsed_ok": true
+    },
+    "ex14_med_change": {
+      "elapsed_ms": 12669.3,
+      "model": "claude-sonnet-4-5",
+      "input_tokens": 830,
+      "output_tokens": 413,
+      "cache_creation_input_tokens": 0,
+      "cache_read_input_tokens": 0,
+      "raw_chars": 1086,
+      "parsed_ok": true
+    },
+    "ex15_ct_chest": {
+      "elapsed_ms": 11149.4,
+      "model": "claude-sonnet-4-5",
+      "input_tokens": 884,
+      "output_tokens": 251,
+      "cache_creation_input_tokens": 0,
+      "cache_read_input_tokens": 0,
+      "raw_chars": 727,
+      "parsed_ok": true
+    },
+    "ex16_asthma_flare": {
+      "elapsed_ms": 14874.8,
+      "model": "claude-sonnet-4-5",
+      "input_tokens": 836,
+      "output_tokens": 515,
+      "cache_creation_input_tokens": 0,
+      "cache_read_input_tokens": 0,
+      "raw_chars": 1387,
+      "parsed_ok": true
+    },
+    "ex17_echo_report": {
+      "elapsed_ms": 9408.8,
+      "model": "claude-sonnet-4-5",
+      "input_tokens": 864,
+      "output_tokens": 334,
+      "cache_creation_input_tokens": 0,
+      "cache_read_input_tokens": 0,
+      "raw_chars": 961,
+      "parsed_ok": true
+    },
+    "ex18_back_pain_voice": {
+      "elapsed_ms": 12944.7,
+      "model": "claude-sonnet-4-5",
+      "input_tokens": 822,
+      "output_tokens": 277,
+      "cache_creation_input_tokens": 0,
+      "cache_read_input_tokens": 0,
+      "raw_chars": 843,
+      "parsed_ok": true
+    },
+    "ex19_migraine_history": {
+      "elapsed_ms": 13491.8,
+      "model": "claude-sonnet-4-5",
+      "input_tokens": 845,
+      "output_tokens": 396,
+      "cache_creation_input_tokens": 0,
+      "cache_read_input_tokens": 0,
+      "raw_chars": 1206,
+      "parsed_ok": true
+    },
+    "ex20_psychiatry_visit": {
+      "elapsed_ms": 12023.3,
+      "model": "claude-sonnet-4-5",
+      "input_tokens": 891,
+      "output_tokens": 458,
+      "cache_creation_input_tokens": 0,
+      "cache_read_input_tokens": 0,
+      "raw_chars": 1297,
+      "parsed_ok": true
+    },
+    "ex21_lipid_followup": {
+      "elapsed_ms": 11431.1,
+      "model": "claude-sonnet-4-5",
+      "input_tokens": 843,
+      "output_tokens": 488,
+      "cache_creation_input_tokens": 0,
+      "cache_read_input_tokens": 0,
+      "raw_chars": 1268,
+      "parsed_ok": true
+    },
+    "ex22_anaphylaxis_voice": {
+      "elapsed_ms": 13907.7,
+      "model": "claude-sonnet-4-5",
+      "input_tokens": 826,
+      "output_tokens": 480,
+      "cache_creation_input_tokens": 0,
+      "cache_read_input_tokens": 0,
+      "raw_chars": 1486,
+      "parsed_ok": true
+    },
+    "ex23_ra_visit": {
+      "elapsed_ms": 9638.3,
+      "model": "claude-sonnet-4-5",
+      "input_tokens": 858,
+      "output_tokens": 467,
+      "cache_creation_input_tokens": 0,
+      "cache_read_input_tokens": 0,
+      "raw_chars": 1283,
+      "parsed_ok": true
+    },
+    "ex24_uti": {
+      "elapsed_ms": 13116.5,
+      "model": "claude-sonnet-4-5",
+      "input_tokens": 840,
+      "output_tokens": 563,
+      "cache_creation_input_tokens": 0,
+      "cache_read_input_tokens": 0,
+      "raw_chars": 1620,
+      "parsed_ok": true
+    },
+    "ex25_smoking_cessation": {
+      "elapsed_ms": 10566.7,
+      "model": "claude-sonnet-4-5",
+      "input_tokens": 841,
+      "output_tokens": 345,
+      "cache_creation_input_tokens": 0,
+      "cache_read_input_tokens": 0,
+      "raw_chars": 940,
+      "parsed_ok": true
+    },
+    "ex26_sleep_apnea": {
+      "elapsed_ms": 13703.5,
+      "model": "claude-sonnet-4-5",
+      "input_tokens": 859,
+      "output_tokens": 467,
+      "cache_creation_input_tokens": 0,
+      "cache_read_input_tokens": 0,
+      "raw_chars": 1307,
+      "parsed_ok": true
+    },
+    "ex27_vision_loss_voice": {
+      "elapsed_ms": 10826.1,
+      "model": "claude-sonnet-4-5",
+      "input_tokens": 815,
+      "output_tokens": 321,
+      "cache_creation_input_tokens": 0,
+      "cache_read_input_tokens": 0,
+      "raw_chars": 1076,
+      "parsed_ok": true
+    },
+    "ex28_pneumonia_chest_xray": {
+      "elapsed_ms": 11591.8,
+      "model": "claude-sonnet-4-5",
+      "input_tokens": 846,
+      "output_tokens": 198,
+      "cache_creation_input_tokens": 0,
+      "cache_read_input_tokens": 0,
+      "raw_chars": 568,
+      "parsed_ok": true
+    },
+    "ex29_pregnancy_routine": {
+      "elapsed_ms": 12518.9,
+      "model": "claude-sonnet-4-5",
+      "input_tokens": 850,
+      "output_tokens": 416,
+      "cache_creation_input_tokens": 0,
+      "cache_read_input_tokens": 0,
+      "raw_chars": 1237,
+      "parsed_ok": true
+    },
+    "ex30_chronic_kidney": {
+      "elapsed_ms": 15809.8,
+      "model": "claude-sonnet-4-5",
+      "input_tokens": 865,
+      "output_tokens": 557,
+      "cache_creation_input_tokens": 0,
+      "cache_read_input_tokens": 0,
+      "raw_chars": 1462,
+      "parsed_ok": true
+    }
+  },
+  "predictions": {
+    "ex01_hypertension_followup": {
+      "diagnoses": [
+        {
+          "condition": "Hypertension",
+          "icd10": "I10",
+          "status": "active",
+          "confidence": 0.95
+        }
+      ],
+      "medications": [
+        {
+          "name": "Lisinopril",
+          "dose": "10mg",
+          "frequency": "daily",
+          "started_at": "",
+          "purpose": "Blood pressure control"
+        }
+      ],
+      "vitals": [
+        {
+          "type": "bp",
+          "value": "132/84",
+          "unit": "mmHg",
+          "recorded_at": "2026-03-10"
+        }
+      ],
+      "labs": [],
+      "symptoms": [],
+      "red_flags": [],
+      "raw_summary": "Follow-up visit on 2026-03-10 for hypertension management. Patient reports good medication adherence with home BP readings averaging 132/84 mmHg on lisinopril 10mg daily, with plan to recheck BP and metabolic panel in 3 months."
+    },
+    "ex02_diabetes_panel": {
+      "diagnoses": [
+        {
+          "condition": "Type 2 diabetes mellitus",
+          "icd10": "E11.9",
+          "status": "active",
+          "confidence": 1.0
+        },
+        {
+          "condition": "Dyslipidemia",
+          "icd10": "E78.5",
+          "status": "active",
+          "confidence": 0.95
+        },
+        {
+          "condition": "Hypertension",
+          "icd10": "I10",
+          "status": "active",
+          "confidence": 0.9
+        }
+      ],
+      "medications": [
+        {
+          "name": "Atorvastatin",
+          "dose": "20mg",
+          "frequency": "QHS",
+          "started_at": "",
+          "purpose": "Dyslipidemia management"
+        },
+        {
+          "name": "Metformin",
+          "dose": "1000mg",
+          "frequency": "BID",
+          "started_at": "",
+          "purpose": "Diabetes management"
+        }
+      ],
+      "vitals": [
+        {
+          "type": "bp",
+          "value": "138/86",
+          "unit": "mmHg",
+          "recorded_at": ""
+        },
+        {
+          "type": "weight",
+          "value": "87",
+          "unit": "kg",
+          "recorded_at": ""
+        }
+      ],
+      "labs": [
+        {
+          "test": "A1C",
+          "value": "7.5",
+          "unit": "%",
+          "reference_range": "<7.0%",
+          "flag": "high"
+        },
+        {
+          "test": "LDL",
+          "value": "142",
+          "unit": "mg/dL",
+          "reference_range": "<100",
+          "flag": "high"
+        },
+        {
+          "test": "HDL",
+          "value": "41",
+          "unit": "mg/dL",
+          "reference_range": ">40",
+          "flag": "normal"
+        },
+        {
+          "test": "Triglycerides",
+          "value": "168",
+          "unit": "mg/dL",
+          "reference_range": "<150",
+          "flag": "high"
+        },
+        {
+          "test": "Creatinine",
+          "value": "1.0",
+          "unit": "mg/dL",
+          "reference_range": "0.7-1.3",
+          "flag": "normal"
+        },
+        {
+          "test": "eGFR",
+          "value": "78",
+          "unit": "mL/min/1.73m\u00b2",
+          "reference_range": ">60",
+          "flag": "normal"
+        }
+      ],
+      "symptoms": [],
+      "red_flags": [],
+      "raw_summary": "Quarterly diabetes review showing worsening glycemic control with A1C rising to 7.5% and elevated lipids. Treatment intensified with new atorvastatin and increased metformin dose."
+    },
+    "ex03_chest_pain_red_flag": {
+      "diagnoses": [
+        {
+          "condition": "ST-elevation myocardial infarction",
+          "icd10": "I21.09",
+          "status": "suspected",
+          "confidence": 0.9
+        }
+      ],
+      "medications": [],
+      "vitals": [
+        {
+          "type": "bp",
+          "value": "158/96",
+          "unit": "mmHg",
+          "recorded_at": ""
+        },
+        {
+          "type": "hr",
+          "value": "102",
+          "unit": "bpm",
+          "recorded_at": ""
+        }
+      ],
+      "labs": [
+        {
+          "test": "Troponin",
+          "value": "pending",
+          "unit": "",
+          "reference_range": "",
+          "flag": "normal"
+        }
+      ],
+      "symptoms": [
+        {
+          "description": "Substernal chest pain radiating to left arm",
+          "onset": "2 hours ago",
+          "severity": "severe"
+        },
+        {
+          "description": "Diaphoresis",
+          "onset": "2 hours ago",
+          "severity": "moderate"
+        }
+      ],
+      "red_flags": [
+        {
+          "finding": "ST elevation V2-V4 on EKG with substernal chest pain radiating to left arm",
+          "reason": "Findings consistent with acute STEMI requiring immediate intervention",
+          "urgency": "emergent"
+        }
+      ],
+      "raw_summary": "Patient presenting to ED with substernal chest pain radiating to left arm for 2 hours, with diaphoresis and ST elevations on EKG concerning for acute STEMI. Vital signs show hypertension and tachycardia with troponin pending."
+    },
+    "ex04_pdf_lab_only": {
+      "diagnoses": [],
+      "medications": [],
+      "vitals": [],
+      "labs": [
+        {
+          "test": "TSH",
+          "value": "4.8",
+          "unit": "mIU/L",
+          "reference_range": "0.4-4.0",
+          "flag": "high"
+        },
+        {
+          "test": "Free T4",
+          "value": "1.1",
+          "unit": "ng/dL",
+          "reference_range": "0.8-1.8",
+          "flag": "normal"
+        },
+        {
+          "test": "Vitamin D 25-OH",
+          "value": "18",
+          "unit": "ng/mL",
+          "reference_range": "30-100",
+          "flag": "low"
+        },
+        {
+          "test": "Ferritin",
+          "value": "22",
+          "unit": "ng/mL",
+          "reference_range": "24-336",
+          "flag": "low"
+        }
+      ],
+      "symptoms": [],
+      "red_flags": [],
+      "raw_summary": "Laboratory results from April 22, 2026 show mildly elevated TSH with normal Free T4, low Vitamin D, and borderline low ferritin."
+    },
+    "ex05_voice_symptom": {
+      "diagnoses": [],
+      "medications": [],
+      "vitals": [],
+      "labs": [],
+      "symptoms": [
+        {
+          "description": "Headaches",
+          "onset": "5 days ago",
+          "severity": "moderate"
+        },
+        {
+          "description": "Photophobia",
+          "onset": "5 days ago",
+          "severity": "mild"
+        }
+      ],
+      "red_flags": [],
+      "raw_summary": "Patient reports moderate headaches for five days with morning onset, lasting hours, accompanied by photophobia. No fever or neck stiffness noted."
+    },
+    "ex06_image_skin": {},
+    "ex07_polypharmacy": {
+      "diagnoses": [],
+      "medications": [
+        {
+          "name": "Warfarin",
+          "dose": "5mg",
+          "frequency": "QD",
+          "started_at": "",
+          "purpose": ""
+        },
+        {
+          "name": "Aspirin",
+          "dose": "81mg",
+          "frequency": "QD",
+          "started_at": "",
+          "purpose": ""
+        },
+        {
+          "name": "Ibuprofen",
+          "dose": "600mg",
+          "frequency": "TID prn",
+          "started_at": "",
+          "purpose": ""
+        },
+        {
+          "name": "Lisinopril",
+          "dose": "20mg",
+          "frequency": "QD",
+          "started_at": "",
+          "purpose": ""
+        },
+        {
+          "name": "Metformin",
+          "dose": "1000mg",
+          "frequency": "BID",
+          "started_at": "",
+          "purpose": ""
+        },
+        {
+          "name": "Atorvastatin",
+          "dose": "40mg",
+          "frequency": "QHS",
+          "started_at": "",
+          "purpose": ""
+        }
+      ],
+      "vitals": [],
+      "labs": [],
+      "symptoms": [],
+      "red_flags": [
+        {
+          "finding": "Concurrent use of Warfarin, Aspirin, and Ibuprofen",
+          "reason": "Triple antithrombotic therapy with NSAID significantly increases bleeding risk",
+          "urgency": "soon"
+        }
+      ],
+      "raw_summary": "Patient on six chronic medications including anticoagulation (warfarin), antiplatelet (aspirin), antihypertensive (lisinopril), antidiabetic (metformin), and statin (atorvastatin). Concerning concurrent use of warfarin, aspirin, and ibuprofen poses significant bleeding risk."
+    },
+    "ex08_pdf_discharge": {
+      "diagnoses": [
+        {
+          "condition": "Community-acquired pneumonia",
+          "icd10": "J18.9",
+          "status": "active",
+          "confidence": 1.0
+        }
+      ],
+      "medications": [
+        {
+          "name": "Amoxicillin-clavulanate",
+          "dose": "875mg",
+          "frequency": "BID",
+          "started_at": "2026-05-01",
+          "purpose": "Community-acquired pneumonia treatment"
+        },
+        {
+          "name": "Lisinopril",
+          "dose": "10mg",
+          "frequency": "QD",
+          "started_at": "",
+          "purpose": "Home medication (continued)"
+        }
+      ],
+      "vitals": [
+        {
+          "type": "bp",
+          "value": "124/78",
+          "unit": "mmHg",
+          "recorded_at": "2026-05-01"
+        },
+        {
+          "type": "hr",
+          "value": "76",
+          "unit": "bpm",
+          "recorded_at": "2026-05-01"
+        },
+        {
+          "type": "spo2",
+          "value": "96",
+          "unit": "%",
+          "recorded_at": "2026-05-01"
+        },
+        {
+          "type": "temp",
+          "value": "98.2",
+          "unit": "F",
+          "recorded_at": "2026-05-01"
+        }
+      ],
+      "labs": [],
+      "symptoms": [],
+      "red_flags": [],
+      "raw_summary": "Patient discharged after 4-day hospitalization for community-acquired pneumonia, treated with IV antibiotics initially then switched to oral amoxicillin-clavulanate. Afebrile for 24 hours prior to discharge with stable vital signs."
+    },
+    "ex09_empty_input": {
+      "diagnoses": [],
+      "medications": [],
+      "vitals": [],
+      "labs": [],
+      "symptoms": [],
+      "red_flags": [],
+      "raw_summary": "Patient reports no complaints and is feeling well today. No active symptoms or concerns documented."
+    },
+    "ex10_stroke_red_flag": {
+      "diagnoses": [
+        {
+          "condition": "Suspected stroke",
+          "icd10": "I63.9",
+          "status": "suspected",
+          "confidence": 0.85
+        }
+      ],
+      "medications": [],
+      "vitals": [],
+      "labs": [],
+      "symptoms": [
+        {
+          "description": "Right arm weakness",
+          "onset": "1 hour ago",
+          "severity": "severe"
+        },
+        {
+          "description": "Right leg weakness",
+          "onset": "1 hour ago",
+          "severity": "severe"
+        },
+        {
+          "description": "Slurred speech",
+          "onset": "1 hour ago",
+          "severity": "severe"
+        }
+      ],
+      "red_flags": [
+        {
+          "finding": "Acute focal neurological deficits (right-sided weakness and slurred speech) with onset 1 hour ago",
+          "reason": "Signs consistent with acute stroke requiring immediate emergency evaluation and intervention within therapeutic window",
+          "urgency": "emergent"
+        }
+      ],
+      "raw_summary": "Patient's grandmother experienced acute onset of right-sided weakness (arm and leg) and slurred speech starting approximately one hour ago. This presentation is highly concerning for acute stroke and requires immediate emergency medical evaluation."
+    },
+    "ex11_pediatric_vitals": {
+      "diagnoses": [],
+      "medications": [],
+      "vitals": [
+        {
+          "type": "weight",
+          "value": "17.2",
+          "unit": "kg",
+          "recorded_at": ""
+        },
+        {
+          "type": "bp",
+          "value": "95/60",
+          "unit": "mmHg",
+          "recorded_at": ""
+        },
+        {
+          "type": "hr",
+          "value": "96",
+          "unit": "bpm",
+          "recorded_at": ""
+        },
+        {
+          "type": "temp",
+          "value": "98.4",
+          "unit": "F",
+          "recorded_at": ""
+        }
+      ],
+      "labs": [],
+      "symptoms": [],
+      "red_flags": [],
+      "raw_summary": "Well-child visit for a 4-year-old with normal vital signs. Height 102 cm, weight 17.2 kg."
+    },
+    "ex12_complex_oncology": {
+      "diagnoses": [
+        {
+          "condition": "Stage IIB invasive ductal carcinoma",
+          "icd10": "C50.919",
+          "status": "active",
+          "confidence": 1.0
+        }
+      ],
+      "medications": [
+        {
+          "name": "Tamoxifen",
+          "dose": "20mg",
+          "frequency": "once daily",
+          "started_at": "2025-08-14",
+          "purpose": "Hormone therapy for ER+/PR+ breast cancer"
+        }
+      ],
+      "vitals": [],
+      "labs": [
+        {
+          "test": "CA 27-29",
+          "value": "18",
+          "unit": "U/mL",
+          "reference_range": "",
+          "flag": "normal"
+        },
+        {
+          "test": "LFTs",
+          "value": "within normal limits",
+          "unit": "",
+          "reference_range": "",
+          "flag": "normal"
+        }
+      ],
+      "symptoms": [
+        {
+          "description": "Hot flashes",
+          "onset": "",
+          "severity": "mild"
+        }
+      ],
+      "red_flags": [],
+      "raw_summary": "Oncology follow-up for patient with stage IIB invasive ductal carcinoma (ER+/PR+/HER2-) status post left mastectomy and axillary lymph node dissection, currently on tamoxifen with normal tumor markers and mild hot flashes. Plan to continue current therapy with repeat tumor markers in 3 months."
+    },
+    "ex13_thyroid_followup": {
+      "diagnoses": [
+        {
+          "condition": "Primary hypothyroidism",
+          "icd10": "E03.9",
+          "status": "active",
+          "confidence": 1.0
+        }
+      ],
+      "medications": [
+        {
+          "name": "Levothyroxine",
+          "dose": "75mcg",
+          "frequency": "QD",
+          "started_at": "",
+          "purpose": "Primary hypothyroidism"
+        }
+      ],
+      "vitals": [],
+      "labs": [
+        {
+          "test": "TSH",
+          "value": "1.8",
+          "unit": "mIU/L",
+          "reference_range": "",
+          "flag": "normal"
+        },
+        {
+          "test": "Free T4",
+          "value": "1.2",
+          "unit": "ng/dL",
+          "reference_range": "",
+          "flag": "normal"
+        }
+      ],
+      "symptoms": [],
+      "red_flags": [],
+      "raw_summary": "Endocrinology follow-up for primary hypothyroidism managed with levothyroxine 75mcg daily. TSH and Free T4 are within normal limits; patient reports good energy and no cold intolerance, continuing current dose."
+    },
+    "ex14_med_change": {
+      "diagnoses": [
+        {
+          "condition": "Hypertension",
+          "icd10": "I10",
+          "status": "active",
+          "confidence": 1.0
+        }
+      ],
+      "medications": [
+        {
+          "name": "Lisinopril",
+          "dose": "20mg",
+          "frequency": "daily",
+          "started_at": "",
+          "purpose": "discontinued - BP not at goal"
+        },
+        {
+          "name": "Amlodipine",
+          "dose": "5mg",
+          "frequency": "QD",
+          "started_at": "",
+          "purpose": "hypertension management"
+        },
+        {
+          "name": "HCTZ",
+          "dose": "12.5mg",
+          "frequency": "QD",
+          "started_at": "",
+          "purpose": "hypertension management"
+        }
+      ],
+      "vitals": [
+        {
+          "type": "bp",
+          "value": "152/94",
+          "unit": "mmHg",
+          "recorded_at": ""
+        },
+        {
+          "type": "hr",
+          "value": "78",
+          "unit": "bpm",
+          "recorded_at": ""
+        }
+      ],
+      "labs": [],
+      "symptoms": [],
+      "red_flags": [],
+      "raw_summary": "Patient with uncontrolled hypertension (BP 152/94) on lisinopril 20mg. Switching to combination therapy with amlodipine 5mg and HCTZ 12.5mg daily."
+    },
+    "ex15_ct_chest": {
+      "diagnoses": [
+        {
+          "condition": "Pulmonary nodules",
+          "icd10": "",
+          "status": "active",
+          "confidence": 1.0
+        },
+        {
+          "condition": "Centrilobular emphysema",
+          "icd10": "J43.2",
+          "status": "active",
+          "confidence": 1.0
+        }
+      ],
+      "medications": [],
+      "vitals": [],
+      "labs": [],
+      "symptoms": [
+        {
+          "description": "Chronic cough",
+          "onset": "",
+          "severity": "mild"
+        }
+      ],
+      "red_flags": [],
+      "raw_summary": "CT chest shows stable bilateral sub-centimeter pulmonary nodules (unchanged from 2025-10) with Fleischner follow-up recommended in 12 months, and mild centrilobular emphysema in the upper lobes. Patient presents with chronic cough."
+    },
+    "ex16_asthma_flare": {
+      "diagnoses": [
+        {
+          "condition": "Asthma exacerbation",
+          "icd10": "J45.901",
+          "status": "active",
+          "confidence": 1.0
+        }
+      ],
+      "medications": [
+        {
+          "name": "SABA (short-acting beta agonist)",
+          "dose": "",
+          "frequency": "QID",
+          "started_at": "",
+          "purpose": "Asthma exacerbation"
+        },
+        {
+          "name": "Prednisone",
+          "dose": "40mg",
+          "frequency": "once daily",
+          "started_at": "",
+          "purpose": "Asthma exacerbation"
+        }
+      ],
+      "vitals": [
+        {
+          "type": "spo2",
+          "value": "95",
+          "unit": "%",
+          "recorded_at": ""
+        },
+        {
+          "type": "hr",
+          "value": "102",
+          "unit": "bpm",
+          "recorded_at": ""
+        }
+      ],
+      "labs": [
+        {
+          "test": "Peak expiratory flow",
+          "value": "280",
+          "unit": "L/min",
+          "reference_range": "baseline 410",
+          "flag": "low"
+        }
+      ],
+      "symptoms": [
+        {
+          "description": "Asthma flare",
+          "onset": "3 days ago",
+          "severity": "moderate"
+        },
+        {
+          "description": "Increased SABA use",
+          "onset": "3 days ago",
+          "severity": "moderate"
+        }
+      ],
+      "red_flags": [],
+      "raw_summary": "Patient presenting with 3-day asthma exacerbation requiring increased SABA use and peak flow reduced to 280 from baseline 410. Started on prednisone 40mg daily for 5 days with SpO2 95% on room air."
+    },
+    "ex17_echo_report": {
+      "diagnoses": [
+        {
+          "condition": "Left ventricular systolic dysfunction",
+          "icd10": "I50.20",
+          "status": "active",
+          "confidence": 1.0
+        },
+        {
+          "condition": "Moderate mitral regurgitation",
+          "icd10": "I34.0",
+          "status": "active",
+          "confidence": 1.0
+        },
+        {
+          "condition": "Left ventricular hypertrophy",
+          "icd10": "I51.7",
+          "status": "active",
+          "confidence": 1.0
+        }
+      ],
+      "medications": [],
+      "vitals": [],
+      "labs": [
+        {
+          "test": "Left ventricular ejection fraction",
+          "value": "35",
+          "unit": "%",
+          "reference_range": "\u226555%",
+          "flag": "low"
+        }
+      ],
+      "symptoms": [],
+      "red_flags": [],
+      "raw_summary": "Transthoracic echocardiogram shows moderately reduced left ventricular ejection fraction at 35% with mild LV dilation and concentric hypertrophy. Moderate mitral regurgitation is present; right ventricle and aortic valve are normal."
+    },
+    "ex18_back_pain_voice": {
+      "diagnoses": [
+        {
+          "condition": "Acute low back pain",
+          "icd10": "M54.5",
+          "status": "active",
+          "confidence": 0.9
+        }
+      ],
+      "medications": [
+        {
+          "name": "Tylenol",
+          "dose": "",
+          "frequency": "",
+          "started_at": "",
+          "purpose": "Low back pain relief"
+        }
+      ],
+      "vitals": [],
+      "labs": [],
+      "symptoms": [
+        {
+          "description": "Lower back stiffness",
+          "onset": "2 days ago",
+          "severity": "moderate"
+        },
+        {
+          "description": "Pain with forward bending",
+          "onset": "2 days ago",
+          "severity": "moderate"
+        }
+      ],
+      "red_flags": [],
+      "raw_summary": "Patient reports acute lower back pain from lifting boxes two days ago, presenting with stiffness and pain on forward bending but no radicular symptoms. Partial relief with acetaminophen."
+    },
+    "ex19_migraine_history": {
+      "diagnoses": [
+        {
+          "condition": "Migraine with aura",
+          "icd10": "G43.1",
+          "status": "active",
+          "confidence": 0.95
+        }
+      ],
+      "medications": [
+        {
+          "name": "Sumatriptan",
+          "dose": "100mg",
+          "frequency": "PRN",
+          "started_at": "",
+          "purpose": "Acute migraine treatment"
+        },
+        {
+          "name": "Topiramate",
+          "dose": "50mg",
+          "frequency": "BID",
+          "started_at": "",
+          "purpose": "Migraine prophylaxis (under discussion)"
+        }
+      ],
+      "vitals": [],
+      "labs": [],
+      "symptoms": [
+        {
+          "description": "Unilateral throbbing headache with photophobia and phonophobia",
+          "onset": "3-4 attacks per month, duration 6-12 hours",
+          "severity": "moderate"
+        },
+        {
+          "description": "Visual aura preceding headache",
+          "onset": "Prior to migraine attacks",
+          "severity": "mild"
+        }
+      ],
+      "red_flags": [],
+      "raw_summary": "Patient has active migraine with aura occurring 3-4 times monthly with typical features including visual aura, unilateral throbbing, photophobia and phonophobia. Currently managed with sumatriptan 100mg PRN with good response; prophylactic topiramate is being considered."
+    },
+    "ex20_psychiatry_visit": {
+      "diagnoses": [
+        {
+          "condition": "Major depressive disorder, recurrent, moderate",
+          "icd10": "F33.1",
+          "status": "active",
+          "confidence": 1.0
+        },
+        {
+          "condition": "Generalized anxiety disorder",
+          "icd10": "F41.1",
+          "status": "active",
+          "confidence": 1.0
+        }
+      ],
+      "medications": [
+        {
+          "name": "Sertraline",
+          "dose": "100mg",
+          "frequency": "QD",
+          "started_at": "8 weeks ago",
+          "purpose": "Major depressive disorder"
+        },
+        {
+          "name": "Buspirone",
+          "dose": "10mg",
+          "frequency": "TID",
+          "started_at": "",
+          "purpose": "Generalized anxiety disorder"
+        }
+      ],
+      "vitals": [],
+      "labs": [
+        {
+          "test": "PHQ-9",
+          "value": "9",
+          "unit": "",
+          "reference_range": "",
+          "flag": "normal"
+        },
+        {
+          "test": "GAD-7",
+          "value": "8",
+          "unit": "",
+          "reference_range": "",
+          "flag": "normal"
+        }
+      ],
+      "symptoms": [],
+      "red_flags": [],
+      "raw_summary": "Psychiatry follow-up showing improvement in depression and anxiety with PHQ-9 down from 17 to 9 and GAD-7 down from 14 to 8. Patient on sertraline 100mg daily for 8 weeks and buspirone 10mg three times daily, with plan to continue sertraline and consider tapering buspirone."
+    },
+    "ex21_lipid_followup": {
+      "diagnoses": [
+        {
+          "condition": "Hyperlipidemia",
+          "icd10": "E78.5",
+          "status": "active",
+          "confidence": 0.95
+        }
+      ],
+      "medications": [
+        {
+          "name": "Atorvastatin",
+          "dose": "40mg",
+          "frequency": "QHS",
+          "started_at": "",
+          "purpose": "Lipid management"
+        }
+      ],
+      "vitals": [],
+      "labs": [
+        {
+          "test": "LDL",
+          "value": "88",
+          "unit": "mg/dL",
+          "reference_range": "",
+          "flag": "normal"
+        },
+        {
+          "test": "LDL",
+          "value": "142",
+          "unit": "mg/dL",
+          "reference_range": "",
+          "flag": "high"
+        },
+        {
+          "test": "HDL",
+          "value": "52",
+          "unit": "mg/dL",
+          "reference_range": "",
+          "flag": "normal"
+        },
+        {
+          "test": "Triglycerides",
+          "value": "110",
+          "unit": "mg/dL",
+          "reference_range": "",
+          "flag": "normal"
+        },
+        {
+          "test": "Total Cholesterol",
+          "value": "168",
+          "unit": "mg/dL",
+          "reference_range": "",
+          "flag": "normal"
+        }
+      ],
+      "symptoms": [],
+      "red_flags": [],
+      "raw_summary": "Lipid recheck after 12 weeks of atorvastatin 40mg shows improved LDL from 142 to 88 mg/dL with no muscle pain. Patient to continue atorvastatin with recheck in 6 months."
+    },
+    "ex22_anaphylaxis_voice": {
+      "diagnoses": [
+        {
+          "condition": "Anaphylaxis",
+          "icd10": "T78.2",
+          "status": "active",
+          "confidence": 0.95
+        },
+        {
+          "condition": "Shellfish allergy",
+          "icd10": "Z91.013",
+          "status": "active",
+          "confidence": 0.9
+        }
+      ],
+      "medications": [
+        {
+          "name": "Epinephrine auto-injector (EpiPen)",
+          "dose": "",
+          "frequency": "as needed",
+          "started_at": "5 minutes ago",
+          "purpose": "Anaphylaxis treatment"
+        }
+      ],
+      "vitals": [],
+      "labs": [],
+      "symptoms": [
+        {
+          "description": "Hives on arms and chest",
+          "onset": "10 minutes after eating shrimp",
+          "severity": "moderate"
+        },
+        {
+          "description": "Throat tightness",
+          "onset": "10 minutes after eating shrimp",
+          "severity": "severe"
+        },
+        {
+          "description": "Difficulty swallowing",
+          "onset": "10 minutes after eating shrimp",
+          "severity": "severe"
+        }
+      ],
+      "red_flags": [
+        {
+          "finding": "Anaphylaxis with throat tightness and difficulty swallowing following shrimp ingestion",
+          "reason": "Active anaphylactic reaction with airway involvement requiring immediate emergency care despite EpiPen administration",
+          "urgency": "emergent"
+        }
+      ],
+      "raw_summary": "Patient experiencing anaphylaxis with hives, throat tightness, and difficulty swallowing 10 minutes after eating shrimp. EpiPen administered 5 minutes ago and patient is en route to emergency department."
+    },
+    "ex23_ra_visit": {
+      "diagnoses": [
+        {
+          "condition": "Seropositive rheumatoid arthritis",
+          "icd10": "M05.9",
+          "status": "active",
+          "confidence": 1.0
+        }
+      ],
+      "medications": [
+        {
+          "name": "Methotrexate",
+          "dose": "15mg",
+          "frequency": "weekly",
+          "started_at": "",
+          "purpose": "Rheumatoid arthritis"
+        },
+        {
+          "name": "Hydroxychloroquine",
+          "dose": "200mg",
+          "frequency": "BID",
+          "started_at": "",
+          "purpose": "Rheumatoid arthritis"
+        }
+      ],
+      "vitals": [],
+      "labs": [
+        {
+          "test": "CRP",
+          "value": "4",
+          "unit": "mg/L",
+          "reference_range": "",
+          "flag": "normal"
+        },
+        {
+          "test": "ESR",
+          "value": "12",
+          "unit": "mm/h",
+          "reference_range": "",
+          "flag": "normal"
+        },
+        {
+          "test": "DAS28",
+          "value": "2.4",
+          "unit": "",
+          "reference_range": "",
+          "flag": "normal"
+        }
+      ],
+      "symptoms": [
+        {
+          "description": "Morning stiffness",
+          "onset": "",
+          "severity": "mild"
+        }
+      ],
+      "red_flags": [],
+      "raw_summary": "Patient with seropositive rheumatoid arthritis showing low disease activity on methotrexate and hydroxychloroquine. Inflammatory markers are within normal limits with DAS28 score of 2.4."
+    },
+    "ex24_uti": {
+      "diagnoses": [
+        {
+          "condition": "Urinary tract infection",
+          "icd10": "N39.0",
+          "status": "active",
+          "confidence": 0.95
+        }
+      ],
+      "medications": [
+        {
+          "name": "Nitrofurantoin",
+          "dose": "100mg",
+          "frequency": "BID",
+          "started_at": "",
+          "purpose": "Urinary tract infection"
+        }
+      ],
+      "vitals": [],
+      "labs": [
+        {
+          "test": "Leukocyte esterase",
+          "value": "3+",
+          "unit": "",
+          "reference_range": "negative",
+          "flag": "high"
+        },
+        {
+          "test": "Nitrites",
+          "value": "positive",
+          "unit": "",
+          "reference_range": "negative",
+          "flag": "high"
+        },
+        {
+          "test": "WBCs",
+          "value": "many",
+          "unit": "",
+          "reference_range": "0-5/hpf",
+          "flag": "high"
+        },
+        {
+          "test": "Blood",
+          "value": "negative",
+          "unit": "",
+          "reference_range": "negative",
+          "flag": "normal"
+        }
+      ],
+      "symptoms": [
+        {
+          "description": "Urinary frequency",
+          "onset": "2 days",
+          "severity": "moderate"
+        },
+        {
+          "description": "Dysuria",
+          "onset": "2 days",
+          "severity": "moderate"
+        },
+        {
+          "description": "Suprapubic discomfort",
+          "onset": "2 days",
+          "severity": "mild"
+        }
+      ],
+      "red_flags": [],
+      "raw_summary": "Patient presents with 2-day history of urinary frequency, dysuria, and suprapubic discomfort consistent with uncomplicated urinary tract infection. Urinalysis confirms infection with positive leukocyte esterase, nitrites, and numerous WBCs; started on nitrofurantoin 100mg twice daily for 5 days."
+    },
+    "ex25_smoking_cessation": {
+      "diagnoses": [
+        {
+          "condition": "Tobacco use disorder",
+          "icd10": "F17.210",
+          "status": "active",
+          "confidence": 1.0
+        }
+      ],
+      "medications": [
+        {
+          "name": "Varenicline",
+          "dose": "1mg",
+          "frequency": "BID",
+          "started_at": "1 week ago",
+          "purpose": "Smoking cessation"
+        }
+      ],
+      "vitals": [
+        {
+          "type": "bp",
+          "value": "128/82",
+          "unit": "mmHg",
+          "recorded_at": ""
+        },
+        {
+          "type": "hr",
+          "value": "80",
+          "unit": "bpm",
+          "recorded_at": ""
+        }
+      ],
+      "labs": [],
+      "symptoms": [
+        {
+          "description": "Nausea",
+          "onset": "",
+          "severity": "mild"
+        }
+      ],
+      "red_flags": [],
+      "raw_summary": "Patient with 32 pack-year smoking history reducing from 1 PPD to half a pack daily, started on varenicline 1 week ago for smoking cessation. Experiencing mild nausea with no suicidal ideation, vitals stable."
+    },
+    "ex26_sleep_apnea": {
+      "diagnoses": [
+        {
+          "condition": "Severe obstructive sleep apnea",
+          "icd10": "G47.33",
+          "status": "active",
+          "confidence": 1.0
+        }
+      ],
+      "medications": [],
+      "vitals": [
+        {
+          "type": "spo2",
+          "value": "82",
+          "unit": "%",
+          "recorded_at": "2026-01-15"
+        }
+      ],
+      "labs": [
+        {
+          "test": "AHI",
+          "value": "28",
+          "unit": "events/h",
+          "reference_range": "<5 normal, 5-15 mild, 15-30 moderate, >30 severe",
+          "flag": "critical"
+        },
+        {
+          "test": "Total sleep time",
+          "value": "6.2",
+          "unit": "h",
+          "reference_range": "",
+          "flag": "normal"
+        },
+        {
+          "test": "Time below 90% SpO2",
+          "value": "24",
+          "unit": "min",
+          "reference_range": "",
+          "flag": "high"
+        }
+      ],
+      "symptoms": [],
+      "red_flags": [
+        {
+          "finding": "Severe oxygen desaturation during sleep (lowest SpO2 82%, 24 minutes below 90%)",
+          "reason": "Significant nocturnal hypoxemia increases cardiovascular risk and requires urgent treatment with CPAP therapy",
+          "urgency": "soon"
+        }
+      ],
+      "raw_summary": "Sleep study shows severe obstructive sleep apnea with AHI of 28 events/hour and significant oxygen desaturation (lowest 82%, 24 minutes below 90%). CPAP therapy is recommended."
+    },
+    "ex27_vision_loss_voice": {
+      "diagnoses": [
+        {
+          "condition": "Hypertension",
+          "icd10": "I10",
+          "status": "active",
+          "confidence": 1.0
+        }
+      ],
+      "medications": [],
+      "vitals": [],
+      "labs": [],
+      "symptoms": [
+        {
+          "description": "Sudden monocular vision loss in right eye (curtain-like)",
+          "onset": "30 minutes ago",
+          "severity": "severe"
+        }
+      ],
+      "red_flags": [
+        {
+          "finding": "Sudden painless monocular vision loss described as 'curtain coming down' in 62-year-old with hypertension",
+          "reason": "Classic presentation of central retinal artery occlusion, retinal detachment, or amaurosis fugax; requires immediate ophthalmologic evaluation to rule out acute retinal vascular event or detachment",
+          "urgency": "emergent"
+        }
+      ],
+      "raw_summary": "62-year-old patient with hypertension reports sudden painless vision loss in right eye described as a curtain coming down, starting 30 minutes ago. This presentation requires emergent ophthalmologic evaluation for possible retinal artery occlusion or retinal detachment."
+    },
+    "ex28_pneumonia_chest_xray": {
+      "diagnoses": [
+        {
+          "condition": "Right lower lobe pneumonia",
+          "icd10": "J18.1",
+          "status": "active",
+          "confidence": 0.9
+        }
+      ],
+      "medications": [],
+      "vitals": [],
+      "labs": [],
+      "symptoms": [
+        {
+          "description": "Cough",
+          "onset": "",
+          "severity": "moderate"
+        },
+        {
+          "description": "Fever",
+          "onset": "",
+          "severity": "moderate"
+        }
+      ],
+      "red_flags": [],
+      "raw_summary": "Chest X-ray shows right lower lobe pneumonia with patchy opacity. Patient presents with cough and fever."
+    },
+    "ex29_pregnancy_routine": {
+      "diagnoses": [
+        {
+          "condition": "Pregnancy at 28 weeks gestation",
+          "icd10": "Z34.03",
+          "status": "active",
+          "confidence": 1.0
+        }
+      ],
+      "medications": [
+        {
+          "name": "Prenatal vitamin",
+          "dose": "",
+          "frequency": "daily",
+          "started_at": "",
+          "purpose": "Pregnancy supplementation"
+        },
+        {
+          "name": "Iron",
+          "dose": "65mg",
+          "frequency": "QD",
+          "started_at": "",
+          "purpose": "Pregnancy supplementation"
+        }
+      ],
+      "vitals": [
+        {
+          "type": "bp",
+          "value": "118/76",
+          "unit": "mmHg",
+          "recorded_at": ""
+        },
+        {
+          "type": "hr",
+          "value": "148",
+          "unit": "bpm",
+          "recorded_at": ""
+        }
+      ],
+      "labs": [
+        {
+          "test": "1-hour glucose challenge",
+          "value": "132",
+          "unit": "mg/dL",
+          "reference_range": "<140 mg/dL",
+          "flag": "normal"
+        }
+      ],
+      "symptoms": [],
+      "red_flags": [],
+      "raw_summary": "Routine 28-week prenatal visit with normal findings including appropriate fundal height, normal fetal heart tones, normal blood pressure, and normal glucose challenge test. Patient denies concerning symptoms and continues prenatal vitamins with iron supplementation."
+    },
+    "ex30_chronic_kidney": {
+      "diagnoses": [
+        {
+          "condition": "Chronic kidney disease stage 3a",
+          "icd10": "N18.3",
+          "status": "active",
+          "confidence": 1.0
+        }
+      ],
+      "medications": [
+        {
+          "name": "Lisinopril",
+          "dose": "20mg",
+          "frequency": "once daily",
+          "started_at": "",
+          "purpose": "BP control and renoprotection"
+        }
+      ],
+      "vitals": [
+        {
+          "type": "bp",
+          "value": "132/80",
+          "unit": "mmHg",
+          "recorded_at": ""
+        }
+      ],
+      "labs": [
+        {
+          "test": "eGFR",
+          "value": "52",
+          "unit": "mL/min/1.73m\u00b2",
+          "reference_range": "",
+          "flag": "low"
+        },
+        {
+          "test": "Creatinine",
+          "value": "1.4",
+          "unit": "mg/dL",
+          "reference_range": "",
+          "flag": "high"
+        },
+        {
+          "test": "Urine albumin-creatinine ratio",
+          "value": "145",
+          "unit": "mg/g",
+          "reference_range": "",
+          "flag": "high"
+        },
+        {
+          "test": "Potassium",
+          "value": "4.6",
+          "unit": "mEq/L",
+          "reference_range": "",
+          "flag": "normal"
+        },
+        {
+          "test": "Bicarbonate",
+          "value": "24",
+          "unit": "mEq/L",
+          "reference_range": "",
+          "flag": "normal"
+        }
+      ],
+      "symptoms": [],
+      "red_flags": [],
+      "raw_summary": "Nephrology visit for CKD stage 3a with stable creatinine at 1.4 and eGFR 52. Patient on lisinopril for blood pressure and renal protection with moderately increased urine albumin-creatinine ratio."
+    }
+  }
+}
