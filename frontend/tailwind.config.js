@@ -76,6 +76,8 @@ export default {
         "pulse-soft": "pulseSoft 2.4s ease-in-out infinite",
         "stream": "stream 1.6s linear infinite",
         "float": "float 6s ease-in-out infinite",
+        "rise": "rise 480ms cubic-bezier(0.2, 0.8, 0.2, 1) both",
+        "rise-out": "riseOut 320ms cubic-bezier(0.4, 0, 0.6, 1) both",
       },
       keyframes: {
         pulseSoft: {
@@ -89,6 +91,14 @@ export default {
         float: {
           "0%, 100%": { transform: "translateY(0)" },
           "50%": { transform: "translateY(-6px)" },
+        },
+        rise: {
+          "0%":   { opacity: "0", transform: "translateY(14px) scale(0.97)" },
+          "100%": { opacity: "1", transform: "translateY(0) scale(1)" },
+        },
+        riseOut: {
+          "0%":   { opacity: "1", transform: "translateY(0)" },
+          "100%": { opacity: "0", transform: "translateY(-8px)" },
         },
       },
     },

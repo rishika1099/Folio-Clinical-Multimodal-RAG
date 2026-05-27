@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 
 export default function LandingPage() {
@@ -79,57 +80,106 @@ function Hero() {
   );
 }
 
+/**
+ * Hero visual = scripted chat playing out on a loop.
+ *
+ *   step 1  user message rises
+ *   step 2  typing dots rise (replaces nothing — appears below user msg)
+ *   step 3  typing collapses; Folio reply with citations rises in its place
+ *   step 4  lab-ingest card rises
+ *   step 5  hold for a beat
+ *   loop    fade everything out and restart
+ */
 function HeroVisual() {
+  const [step, setStep] = useState(0);
+  const [cycle, setCycle] = useState(0);
+
+  useEffect(() => {
+    const timers: number[] = [];
+    const run = () => {
+      setStep(0);
+      timers.push(window.setTimeout(() => setStep(1), 200));   // user
+      timers.push(window.setTimeout(() => setStep(2), 1100));  // typing
+      timers.push(window.setTimeout(() => setStep(3), 2700));  // reply
+      timers.push(window.setTimeout(() => setStep(4), 4400));  // ingest
+      timers.push(window.setTimeout(() => {                    // restart
+        setCycle(c => c + 1);
+        run();
+      }, 9500));
+    };
+    run();
+    return () => timers.forEach(clearTimeout);
+  }, []);
+
   return (
-    <div className="relative h-[340px] lg:h-[400px]">
-      <div className="absolute -top-6 -right-4 w-72 h-72 rounded-full bg-accent-soft/50 blur-3xl" />
-      <div className="absolute bottom-0 left-0 w-64 h-64 rounded-full bg-warn-soft/40 blur-3xl" />
+    <div className="relative h-[400px] lg:h-[440px]">
+      <div className="absolute -top-10 -right-6 w-72 h-72 rounded-full bg-accent-soft/55 blur-3xl pointer-events-none" />
+      <div className="absolute -bottom-4 left-4 w-64 h-64 rounded-full bg-warn-soft/45 blur-3xl pointer-events-none" />
 
       <div className="relative h-full flex flex-col gap-3 items-end justify-center">
-        <FloatingBubble
-          delay="0s" tone="accent"
-          eyebrow="You · 2 min ago"
-          title="Is my BP trending up?"
-        />
-        <FloatingBubble
-          delay="0.4s" tone="white"
-          eyebrow="Folio · cited 3 reports"
-          title="Yes — your systolic has climbed 124 → 132 → 144 over your last three readings."
-        />
-        <FloatingBubble
-          delay="0.8s" tone="info"
-          eyebrow="Lab PDF · ingested"
-          title="HbA1c 7.2% · LDL 142 · Creatinine 1.0"
-          mono
-        />
+        {step >= 1 && (
+          <Bubble key={`user-${cycle}`} tone="accent" eyebrow="You · just now">
+            Is my BP trending up?
+          </Bubble>
+        )}
+
+        {step === 2 && (
+          <Bubble key={`typing-${cycle}`} tone="white" eyebrow="Folio is thinking">
+            <Dots />
+          </Bubble>
+        )}
+
+        {step >= 3 && (
+          <Bubble key={`reply-${cycle}`} tone="white" eyebrow="Folio · cited 3 reports">
+            Yes — your systolic has climbed{" "}
+            <span className="font-mono num">124 → 132 → 144</span>{" "}
+            over your last three readings.
+          </Bubble>
+        )}
+
+        {step >= 4 && (
+          <Bubble key={`ingest-${cycle}`} tone="info" eyebrow="Lab PDF · ingested" mono>
+            HbA1c 7.2% · LDL 142 · Creatinine 1.0
+          </Bubble>
+        )}
       </div>
     </div>
   );
 }
 
-function FloatingBubble({ delay, tone, eyebrow, title, mono }: {
-  delay: string; tone: "accent" | "white" | "info";
-  eyebrow: string; title: string; mono?: boolean;
+function Bubble({ tone, eyebrow, children, mono }: {
+  tone: "accent" | "white" | "info";
+  eyebrow: string;
+  children: React.ReactNode;
+  mono?: boolean;
 }) {
   const toneCls = tone === "accent"
     ? "bg-accent text-white shadow-glow"
     : tone === "info"
-      ? "bg-info-soft text-info-ink border border-info/20"
+      ? "bg-info-soft text-info-ink border border-info/25"
       : "bg-white text-ink-100 border border-ink-700 shadow-card";
+  const eyebrowCls = tone === "accent" ? "text-white/70"
+                    : tone === "info"   ? "text-info-deep/75"
+                                        : "text-ink-300";
   return (
-    <div
-      className={`max-w-[80%] rounded-2xl px-4 py-3 animate-float ${toneCls}`}
-      style={{ animationDelay: delay }}
-    >
-      <div className={`text-[10px] uppercase tracking-[0.14em] font-semibold ${
-        tone === "accent" ? "text-white/70" : tone === "info" ? "text-info-deep/70" : "text-ink-300"
-      }`}>
+    <div className={`max-w-[82%] rounded-2xl px-4 py-3 animate-rise ${toneCls}`}>
+      <div className={`text-[10px] uppercase tracking-[0.14em] font-semibold ${eyebrowCls}`}>
         {eyebrow}
       </div>
       <div className={`text-[14px] leading-snug mt-1 ${mono ? "font-mono num" : ""}`}>
-        {title}
+        {children}
       </div>
     </div>
+  );
+}
+
+function Dots() {
+  return (
+    <span className="inline-flex gap-1.5 items-center py-1">
+      <span className="h-1.5 w-1.5 rounded-full bg-accent animate-pulse-soft" style={{ animationDelay: "0ms" }}/>
+      <span className="h-1.5 w-1.5 rounded-full bg-accent animate-pulse-soft" style={{ animationDelay: "200ms" }}/>
+      <span className="h-1.5 w-1.5 rounded-full bg-accent animate-pulse-soft" style={{ animationDelay: "400ms" }}/>
+    </span>
   );
 }
 
