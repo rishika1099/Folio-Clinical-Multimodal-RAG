@@ -3,7 +3,8 @@ import { Link } from "react-router-dom";
 
 export default function LandingPage() {
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col relative">
+      <BackgroundBlobs />
       <Header />
       <main className="flex-1">
         <Hero />
@@ -13,6 +14,39 @@ export default function LandingPage() {
         <CTA />
       </main>
       <Footer />
+    </div>
+  );
+}
+
+// ─── animated background ───────────────────────────────────────────────────
+function BackgroundBlobs() {
+  useEffect(() => {
+    let raf: number | null = null;
+    let pendingX = 0.5, pendingY = 0.5;
+    const apply = () => {
+      raf = null;
+      document.body.style.setProperty("--mx", String(pendingX));
+      document.body.style.setProperty("--my", String(pendingY));
+    };
+    const onMove = (e: PointerEvent) => {
+      pendingX = e.clientX / window.innerWidth;
+      pendingY = e.clientY / window.innerHeight;
+      if (raf == null) raf = requestAnimationFrame(apply);
+    };
+    window.addEventListener("pointermove", onMove, { passive: true });
+    return () => {
+      window.removeEventListener("pointermove", onMove);
+      if (raf != null) cancelAnimationFrame(raf);
+      // Reset to centre so other pages don't inherit a frozen cursor offset.
+      document.body.style.removeProperty("--mx");
+      document.body.style.removeProperty("--my");
+    };
+  }, []);
+  return (
+    <div className="bg-blobs" aria-hidden="true">
+      <div className="blob-wrap sage"><div className="blob sage" /></div>
+      <div className="blob-wrap peach"><div className="blob peach" /></div>
+      <div className="blob-wrap lavender"><div className="blob lavender" /></div>
     </div>
   );
 }
