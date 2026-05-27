@@ -187,16 +187,23 @@ export default function BenchmarksPage() {
       </Section>
 
       <section className="card card-pad">
-        <div className="text-[10.5px] uppercase tracking-[0.18em] text-ink-300 font-semibold">Reproduce</div>
-        <h3 className="font-display text-[16px] font-semibold text-ink-50 mt-1">Run the harness yourself</h3>
-        <pre className="mt-3 rounded-xl bg-ink-900/60 border border-ink-700 p-3 text-[12px] text-ink-100 overflow-x-auto">
-{`docker compose exec backend python -m app.eval.runner
-# add --live-embed for real OpenAI embeddings
-# add --json eval.json for machine-readable output`}
-        </pre>
-        <p className="text-[12px] text-ink-300 mt-3 leading-relaxed">
-          Gold dataset at <code className="font-mono">backend/app/eval/dataset.py</code>. Hand-authored across 12 medical scenarios spanning text, PDF, image, and voice modalities, with easy/medium/hard difficulty tags and emergency red-flag cases.
-        </p>
+        <div className="flex items-start justify-between gap-4 flex-wrap">
+          <div className="max-w-xl">
+            <div className="text-[10.5px] uppercase tracking-[0.18em] text-ink-300 font-semibold">Methodology</div>
+            <h3 className="font-display text-[16px] font-semibold text-ink-50 mt-1">Gold dataset + open source</h3>
+            <p className="text-[13px] text-ink-200 mt-2 leading-relaxed">
+              All numbers above are scored against a hand-authored gold set: 12 medical scenarios across text, PDF, image, and voice inputs, tagged for difficulty and including emergency red-flag cases. The harness is reproducible — every metric here regenerates from the same Python module.
+            </p>
+          </div>
+          <a href="https://github.com/rishika1099/Folio-Clinical-Multimodal-RAG/blob/main/EVAL_REPORT.md"
+             target="_blank" rel="noreferrer"
+             className="btn btn-ghost text-[12.5px] py-2 px-3 shrink-0">
+            <svg viewBox="0 0 24 24" className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth="1.8">
+              <path d="M9 19c-4.3 1.4-4.3-2.5-6-3m12 5v-3.5c0-1 .1-1.4-.5-2 2.8-.3 5.5-1.4 5.5-6a4.6 4.6 0 0 0-1.3-3.2 4.2 4.2 0 0 0-.1-3.2s-1.1-.3-3.5 1.3a12 12 0 0 0-6.2 0C6.5 2.8 5.4 3.1 5.4 3.1a4.2 4.2 0 0 0-.1 3.2A4.6 4.6 0 0 0 4 9.5c0 4.6 2.7 5.7 5.5 6-.6.6-.6 1.2-.5 2V21" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+            View report on GitHub
+          </a>
+        </div>
       </section>
     </div>
   );
