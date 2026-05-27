@@ -19,34 +19,56 @@ export default function LandingPage() {
 }
 
 // ─── animated background ───────────────────────────────────────────────────
+//
+// One rAF loop drives two effects:
+//   --mx / --my   normalised mouse position [0..1] — used by the three
+//                 background blobs for a parallax shift
+//   --cx / --cy   pixel-eased cursor position — used by a 4th blob that
+//                 literally follows the cursor with spring-style smoothing
+//
 function BackgroundBlobs() {
   useEffect(() => {
-    let raf: number | null = null;
-    let pendingX = 0.5, pendingY = 0.5;
-    const apply = () => {
-      raf = null;
-      document.body.style.setProperty("--mx", String(pendingX));
-      document.body.style.setProperty("--my", String(pendingY));
-    };
+    // Targets (what the mouse is doing right now).
+    let tx = window.innerWidth / 2;
+    let ty = window.innerHeight / 2;
+    // Current eased positions for the cursor-locked blob.
+    let cx = tx, cy = ty;
+
     const onMove = (e: PointerEvent) => {
-      pendingX = e.clientX / window.innerWidth;
-      pendingY = e.clientY / window.innerHeight;
-      if (raf == null) raf = requestAnimationFrame(apply);
+      tx = e.clientX;
+      ty = e.clientY;
     };
     window.addEventListener("pointermove", onMove, { passive: true });
+
+    let raf = 0;
+    const loop = () => {
+      // Spring towards target. 0.12 = snappy but still smooth.
+      cx += (tx - cx) * 0.12;
+      cy += (ty - cy) * 0.12;
+      const body = document.body.style;
+      body.setProperty("--mx", String(tx / window.innerWidth));
+      body.setProperty("--my", String(ty / window.innerHeight));
+      body.setProperty("--cx", `${cx}px`);
+      body.setProperty("--cy", `${cy}px`);
+      raf = requestAnimationFrame(loop);
+    };
+    raf = requestAnimationFrame(loop);
+
     return () => {
+      cancelAnimationFrame(raf);
       window.removeEventListener("pointermove", onMove);
-      if (raf != null) cancelAnimationFrame(raf);
-      // Reset to centre so other pages don't inherit a frozen cursor offset.
-      document.body.style.removeProperty("--mx");
-      document.body.style.removeProperty("--my");
+      // Reset so logged-in pages don't inherit a frozen cursor offset.
+      const body = document.body.style;
+      ["--mx", "--my", "--cx", "--cy"].forEach(k => body.removeProperty(k));
     };
   }, []);
+
   return (
     <div className="bg-blobs" aria-hidden="true">
       <div className="blob-wrap sage"><div className="blob sage" /></div>
       <div className="blob-wrap peach"><div className="blob peach" /></div>
       <div className="blob-wrap lavender"><div className="blob lavender" /></div>
+      <div className="blob-wrap cursor"><div className="blob cursor" /></div>
     </div>
   );
 }
