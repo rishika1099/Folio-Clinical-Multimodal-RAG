@@ -51,6 +51,15 @@ RETRIEVED PASSAGES (relevant to this turn)
 {passages}
 ============================================
 
+Boundaries you ALWAYS keep:
+- You are NOT a doctor. You are NOT a substitute for professional medical
+  care. You do not diagnose, prescribe, recommend specific dosages, or tell
+  the user to start or stop a medication. When something needs a clinician's
+  judgement, say so plainly and suggest they contact theirs.
+- You ground every specific claim in the snapshot or retrieved passages.
+  If the answer isn't supported there, say "I don't see that in your
+  records" rather than guessing.
+
 Style:
 - Warm, plain language. You're a thoughtful first listener, not a doctor.
 - Be concise. Default to 2–4 short paragraphs unless they ask for depth.
@@ -61,9 +70,9 @@ Style:
 - Ask one focused follow-up question when more detail would help.
 - If they mention a red-flag symptom (chest pain with shortness of breath
   or radiating arm pain, sudden severe headache, unilateral weakness or
-  numbness, slurred speech, fainting, suicidal thoughts), stop and say
-  clearly: "This sounds urgent. Please call 911 or go to the ER now."
-- Never diagnose, never prescribe, never invent dosages.
+  numbness, slurred speech, fainting, suicidal thoughts, signs of
+  anaphylaxis like throat tightness with hives after exposure), stop and
+  say clearly: "This sounds urgent. Please call 911 or go to the ER now."
 - When they ask about their own data, answer directly using snapshot or
   retrieved passages. No hedging on facts they can verify.
 - Address the user as {name}.
@@ -161,33 +170,63 @@ def _sse(event: str, data) -> bytes:
 
 
 async def _stream_anthropic(system: str, messages: list[dict]) -> AsyncIterator[str]:
+    """Retries transient errors (429/503/network) before any token is yielded.
+    Mid-stream failures are NOT retried — they propagate so the chat router
+    can fall back to OpenAI instead."""
+    import asyncio, random
+    from ..retry import is_transient
+
     client = _anthropic_client()
     if client is None:
         raise RuntimeError("anthropic_key_missing")
-    async with client.messages.stream(
-        model=ROUTE_REASON_PRIMARY.model,
-        max_tokens=1024,
-        system=[{"type": "text", "text": system, "cache_control": {"type": "ephemeral"}}],
-        messages=messages,
-    ) as stream:
-        async for text in stream.text_stream:
-            yield text
+
+    for attempt in range(1, 4):
+        yielded = False
+        try:
+            async with client.messages.stream(
+                model=ROUTE_REASON_PRIMARY.model,
+                max_tokens=1024,
+                system=[{"type": "text", "text": system, "cache_control": {"type": "ephemeral"}}],
+                messages=messages,
+            ) as stream:
+                async for text in stream.text_stream:
+                    yielded = True
+                    yield text
+            return
+        except BaseException as exc:
+            if yielded or not is_transient(exc) or attempt == 3:
+                raise
+            await asyncio.sleep(min(4.0, 0.3 * (2 ** (attempt - 1))) * (1 + random.uniform(-0.25, 0.25)))
 
 
 async def _stream_openai(system: str, messages: list[dict]) -> AsyncIterator[str]:
+    """Same retry policy as _stream_anthropic."""
+    import asyncio, random
+    from ..retry import is_transient
+
     client = _openai_client()
     if client is None:
         raise RuntimeError("openai_key_missing")
-    resp = await client.chat.completions.create(
-        model=ROUTE_REASON_FALLBACK.model,
-        messages=[{"role": "system", "content": system}, *messages],
-        stream=True,
-        max_tokens=1024,
-    )
-    async for chunk in resp:
-        delta = chunk.choices[0].delta.content if chunk.choices else None
-        if delta:
-            yield delta
+
+    for attempt in range(1, 4):
+        yielded = False
+        try:
+            resp = await client.chat.completions.create(
+                model=ROUTE_REASON_FALLBACK.model,
+                messages=[{"role": "system", "content": system}, *messages],
+                stream=True,
+                max_tokens=1024,
+            )
+            async for chunk in resp:
+                delta = chunk.choices[0].delta.content if chunk.choices else None
+                if delta:
+                    yielded = True
+                    yield delta
+            return
+        except BaseException as exc:
+            if yielded or not is_transient(exc) or attempt == 3:
+                raise
+            await asyncio.sleep(min(4.0, 0.3 * (2 ** (attempt - 1))) * (1 + random.uniform(-0.25, 0.25)))
 
 
 @router.get("/snapshot")
@@ -213,6 +252,11 @@ async def snapshot(user: UserPublic = Depends(require_auth)):
 
 @router.post("")
 async def chat(payload: dict, user: UserPublic = Depends(require_auth)):
+    from ..ratelimit import enforce
+    from ..audit import log_event
+    await enforce("chat", user.user_id)
+    await log_event(user.user_id, "chat_query", "self")
+
     messages = payload.get("messages") or []
     if not isinstance(messages, list) or not messages:
         raise HTTPException(400, "messages required")

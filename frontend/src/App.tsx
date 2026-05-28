@@ -14,6 +14,9 @@ import LoginPage from "./pages/Login";
 import SignupPage from "./pages/Signup";
 import LandingPage from "./pages/Landing";
 import BenchmarksPage from "./pages/Benchmarks";
+import ProfilePage from "./pages/Profile";
+import ForgotPage from "./pages/Forgot";
+import ResetPage from "./pages/Reset";
 
 /**
  * `/` is dual-purpose:
@@ -46,6 +49,8 @@ export default function App() {
       <Route path="/"       element={<HomeRoute />} />
       <Route path="/login"  element={<LoginPage />} />
       <Route path="/signup" element={<SignupPage />} />
+      <Route path="/forgot" element={<ForgotPage />} />
+      <Route path="/reset"  element={<ResetPage />} />
       <Route path="*" element={
         <AuthGuard>
           <Shell>
@@ -57,6 +62,7 @@ export default function App() {
               <Route path="/reports/:id" element={<ReportDetailPage />} />
               <Route path="/dev" element={<DevPage />} />
               <Route path="/benchmarks" element={<BenchmarksPage />} />
+              <Route path="/profile" element={<ProfilePage />} />
             </Routes>
           </Shell>
         </AuthGuard>

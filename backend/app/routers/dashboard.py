@@ -97,6 +97,7 @@ async def labs_series(test: str, limit: int = 30, user: UserPublic = Depends(req
 
 @router.get("/reports/{report_id}")
 async def get_report(report_id: str, user: UserPublic = Depends(require_auth)):
+    from ..audit import log_event
     db = get_db()
     report = await db.reports.find_one(
         {"user_id": user.user_id, "report_id": report_id}, {"_id": 0}
@@ -109,6 +110,7 @@ async def get_report(report_id: str, user: UserPublic = Depends(require_auth)):
     consensus = await db.consensus_meta.find_one(
         {"user_id": user.user_id, "report_id": report_id}, {"_id": 0}
     )
+    await log_event(user.user_id, "view_report", report_id)
     return {"report": report, "suggestions": suggestions, "consensus": consensus}
 
 

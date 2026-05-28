@@ -8,10 +8,13 @@ import { api, API_BASE, apiForm } from "../lib/api";
 import { postSSE } from "../lib/sse";
 import { fmtRelative, fmtDate } from "../lib/format";
 import { displayName, initials } from "../lib/auth";
+import { friendlyError } from "../lib/errors";
 
 type Mode = "standard" | "consensus";
 
 type Citation = { report_id: string; uploaded_at: string; input_type: string; score: number };
+
+type AttachmentMeta = { name: string; size: number; type: string };
 
 type IngestCardMsg = {
   role: "system";
@@ -26,7 +29,7 @@ type IngestCardMsg = {
 };
 
 type ChatMsg =
-  | { role: "user"; content: string }
+  | { role: "user"; content: string; attachments?: AttachmentMeta[] }
   | { role: "assistant"; content: string; citations?: Citation[]; ragMs?: number }
   | IngestCardMsg;
 
@@ -42,6 +45,7 @@ const QUICK_PROMPTS = [
 export default function ChatPage() {
   const [messages, setMessages] = useState<ChatMsg[]>([]);
   const [input, setInput] = useState("");
+  const [pendingFiles, setPendingFiles] = useState<File[]>([]);
   const [mode, setMode] = useState<Mode>("standard");
   const [streaming, setStreaming] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -99,12 +103,12 @@ export default function ChatPage() {
           setMessages(prev => updateLast(prev, "assistant", (m: any) =>
             ({ ...m, content: (m.content||"") + piece })));
         } else if (e.event === "error") {
-          setError(JSON.parse(e.data).message);
+          setError(friendlyError(new Error(JSON.parse(e.data).message)));
           setMessages(prev => prev.slice(0, -1));
         }
       });
     } catch (err: any) {
-      setError(err?.message || "stream failed");
+      setError(friendlyError(err));
       setMessages(prev => prev.slice(0, -1));
     } finally {
       setStreaming(false);
@@ -137,21 +141,27 @@ export default function ChatPage() {
     }
   };
 
-  // -- file ingest ----------------------------------------------------------
-  const handleFile = async (file: File) => {
+  // -- queue file(s) onto the composer (don't upload yet) -------------------
+  const queueFile = (file: File) => {
     setError(null);
     const isPdf = file.type === "application/pdf" || file.name.toLowerCase().endsWith(".pdf");
     const isImg = file.type.startsWith("image/");
     if (!isPdf && !isImg) {
-      setError("Only PDFs and images can be dropped here.");
+      setError("We can only attach PDFs and images here. Try a different file.");
       return;
     }
+    setPendingFiles(prev => [...prev, file]);
+  };
+
+  // -- run a single file through the ingest pipeline, render as card --------
+  const ingestOne = async (file: File): Promise<void> => {
+    const isPdf = file.type === "application/pdf" || file.name.toLowerCase().endsWith(".pdf");
+    const isImg = file.type.startsWith("image/");
     const card: IngestCardMsg = {
       role: "system", kind: "ingest", status: "running", stages: [],
       sourceLabel: file.name, mode: "standard",
     };
     setMessages(prev => [...prev, card]);
-    setStreaming(true);
 
     let body: File | Blob = file;
     if (isImg) { try { body = await imageCompression(file, { maxSizeMB: 1, maxWidthOrHeight: 1024 }); } catch {} }
@@ -173,29 +183,56 @@ export default function ChatPage() {
       });
     } catch (err: any) {
       setMessages(prev => updateLastIngest(prev, m => ({ ...m, status: "error", error: err?.message || "ingest failed" })));
-    } finally {
-      setStreaming(false);
     }
   };
 
   // -- voice ----------------------------------------------------------------
+  //
+  // Picks a MediaRecorder mime type the current browser supports. iPhone
+  // Safari doesn't ship the WebM encoder, so we fall back to MP4 there.
+  // Whisper accepts both. The order matters: prefer webm/opus because it's
+  // ~3× smaller than mp4 for spoken-word audio.
+  const pickAudioMime = (): { mime: string; ext: string } => {
+    const candidates: { mime: string; ext: string }[] = [
+      { mime: "audio/webm;codecs=opus", ext: "webm" },
+      { mime: "audio/webm",             ext: "webm" },
+      { mime: "audio/mp4",              ext: "m4a"  },
+      { mime: "audio/mp4;codecs=mp4a.40.2", ext: "m4a" },
+      { mime: "audio/aac",              ext: "aac"  },
+    ];
+    for (const c of candidates) {
+      // @ts-expect-error MediaRecorder type lacks isTypeSupported in older lib.dom
+      if (typeof MediaRecorder !== "undefined" && MediaRecorder.isTypeSupported?.(c.mime)) return c;
+    }
+    return { mime: "", ext: "webm" };       // browser will choose
+  };
+
   const startRecording = async () => {
     try {
+      if (!navigator.mediaDevices?.getUserMedia) {
+        setError("Your browser doesn't support voice recording. Try Chrome, Edge, or recent Safari.");
+        return;
+      }
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      const rec = new MediaRecorder(stream, { mimeType: "audio/webm" });
+      const { mime, ext } = pickAudioMime();
+      const rec = mime ? new MediaRecorder(stream, { mimeType: mime }) : new MediaRecorder(stream);
       recChunks.current = [];
       rec.ondataavailable = (ev) => { if (ev.data.size) recChunks.current.push(ev.data); };
       rec.onstop = async () => {
-        const blob = new Blob(recChunks.current, { type: "audio/webm" });
+        const blob = new Blob(recChunks.current, { type: rec.mimeType || mime || "audio/webm" });
         stream.getTracks().forEach(t => t.stop());
+        if (blob.size < 1000) {        // anything under 1KB is silence
+          setError("Recording was too quiet to hear. Try again, closer to the mic.");
+          return;
+        }
         setTranscribing(true);
         try {
           const fd = new FormData();
-          fd.append("file", blob, "clip.webm");
+          fd.append("file", blob, `clip.${ext}`);
           const res = await apiForm<any>("/api/chat/transcribe", fd);
           if (res?.transcript) setInput(prev => (prev ? prev + " " : "") + res.transcript);
         } catch (e: any) {
-          setError(e?.message || "transcription failed");
+          setError(friendlyError(e));
         } finally {
           setTranscribing(false);
         }
@@ -203,8 +240,16 @@ export default function ChatPage() {
       rec.start();
       recRef.current = rec;
       setRecording(true);
-    } catch {
-      setError("Could not access microphone.");
+    } catch (e: any) {
+      // NotAllowedError → permission denied; NotFoundError → no mic; everything else generic
+      const name = e?.name || "";
+      if (name === "NotAllowedError" || name === "PermissionDeniedError") {
+        setError("Microphone access was denied. Allow it in your browser settings and try again.");
+      } else if (name === "NotFoundError") {
+        setError("No microphone was found on this device.");
+      } else {
+        setError("We couldn't start recording. Try again, or use the keyboard.");
+      }
     }
   };
   const stopRecording = () => { recRef.current?.stop(); setRecording(false); };
@@ -231,6 +276,8 @@ export default function ChatPage() {
            e.preventDefault(); setDragOver(false);
            const f = e.dataTransfer.files?.[0]; if (f) handleFile(f);
          }}>
+      <DisclaimerModal />
+
       {dragOver && (
         <div className="fixed inset-0 z-30 grid place-items-center bg-accent-softer/85 backdrop-blur-sm pointer-events-none">
           <div className="rounded-2xl border-2 border-dashed border-accent px-8 py-6 text-center bg-white shadow-cardHover">
@@ -256,7 +303,8 @@ export default function ChatPage() {
         </div>
       )}
 
-      <div className={clsx(empty ? "" : "sticky bottom-4 z-10")}>
+      <div className={clsx(empty ? "" : "sticky bottom-4 z-10")}
+           style={empty ? undefined : { bottom: "max(1rem, env(safe-area-inset-bottom))" }}>
         <form onSubmit={onSubmit} className="card shadow-cardHover overflow-hidden">
           <div className="relative">
             <textarea
@@ -473,8 +521,60 @@ function Bubble({ msg, streaming }: { msg: any; streaming: boolean }) {
             {msg.ragMs != null && <span className="text-[10.5px] text-ink-300 font-mono num">retrieved in {Math.round(msg.ragMs)}ms</span>}
           </div>
         )}
+        {/* Per-message disclaimer footer — appears on every completed assistant reply.
+            Hidden mid-stream to avoid jitter while tokens arrive. */}
+        {!isUser && !streaming && msg.content && (
+          <div className="mt-2 flex items-center gap-1.5 text-[10.5px] text-ink-300 leading-snug">
+            <svg viewBox="0 0 24 24" className="h-3 w-3 shrink-0" fill="none" stroke="currentColor" strokeWidth="1.8">
+              <circle cx="12" cy="12" r="9" />
+              <path d="M12 8v5M12 16v.01" strokeLinecap="round" />
+            </svg>
+            <span>Folio is not a doctor. This isn't medical advice — confirm anything important with your clinician.</span>
+          </div>
+        )}
       </div>
       {isUser && <UserAvatar />}
+    </div>
+  );
+}
+
+// ─── First-visit disclaimer modal ────────────────────────────────────────
+// Shown once per browser. Acknowledgement key bumps when the disclaimer text
+// materially changes — change ACK_KEY to re-prompt all users.
+const ACK_KEY = "folio:medical-disclaimer-ack-v1";
+function DisclaimerModal() {
+  const [open, setOpen] = useState(() => {
+    try { return !localStorage.getItem(ACK_KEY); } catch { return false; }
+  });
+  if (!open) return null;
+  const ack = () => {
+    try { localStorage.setItem(ACK_KEY, new Date().toISOString()); } catch {}
+    setOpen(false);
+  };
+  return (
+    <div className="fixed inset-0 z-40 grid place-items-center bg-ink-900/40 backdrop-blur-sm p-4">
+      <div className="w-full max-w-md card shadow-cardHover overflow-hidden">
+        <div className="px-5 pt-5 pb-3 border-b border-ink-700">
+          <div className="text-[10.5px] uppercase tracking-[0.18em] text-ink-300 font-semibold">A note before you start</div>
+          <h2 className="font-display text-[20px] font-semibold tracking-tight text-ink-50 mt-1">Folio is not a doctor</h2>
+        </div>
+        <div className="p-5 space-y-3 text-[13.5px] text-ink-100 leading-relaxed">
+          <p>
+            Folio helps you organize your medical record and understand what's in it. It can summarise a report, find a lab value, or flag obvious red-flag symptoms — but it is <span className="font-semibold">not</span> a substitute for your doctor.
+          </p>
+          <p>
+            It does not diagnose, prescribe, or tell you to start or stop a medication. AI can make mistakes, including on doses and values. Always confirm anything that matters with a clinician.
+          </p>
+          <p className="rounded-lg bg-alert-softer border border-alert/30 p-2.5 text-[12.5px] text-alert-ink">
+            <span className="font-semibold">If you think you're having an emergency</span> — chest pain, stroke symptoms, anaphylaxis, suicidal thoughts — <span className="font-semibold">call 911 or go to the ER</span>. Don't use a chatbot.
+          </p>
+        </div>
+        <div className="p-4 border-t border-ink-700 flex justify-end">
+          <button onClick={ack} className="btn btn-primary text-[13px] px-4 py-2">
+            I understand — continue
+          </button>
+        </div>
+      </div>
     </div>
   );
 }

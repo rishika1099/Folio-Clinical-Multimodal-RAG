@@ -5,7 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from .config import settings
 from .db import ensure_indexes
-from .routers import auth, chat, consensus, dashboard, dev, ingest, suggestions
+from .routers import auth, chat, consensus, dashboard, dev, ingest, me, suggestions
 
 
 @asynccontextmanager
@@ -39,6 +39,7 @@ app.include_router(consensus.router)
 app.include_router(dashboard.router)
 app.include_router(suggestions.router)
 app.include_router(dev.router)
+app.include_router(me.router)
 
 
 @app.get("/")

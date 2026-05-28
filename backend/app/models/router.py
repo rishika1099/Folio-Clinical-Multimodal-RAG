@@ -27,14 +27,26 @@ class ModelChoice:
 # --- Routing decisions (also documented in MODEL_ROUTING.md) -----------------
 
 # Hot-path structured extraction.
-# Why Claude Haiku 4.5: lowest TTFT among frontier-tier models, strong instruction
-# following, reliable JSON output, and Anthropic prompt caching cuts repeat-call
-# cost on the system prompt + few-shots. Fallback Gemini Flash for similar latency
-# profile and competitive medical-text accuracy.
-ROUTE_EXTRACT_PRIMARY = ModelChoice("anthropic", settings.claude_fast_model,
-    "Lowest-latency frontier model with reliable JSON; prompt-cacheable system prompt.")
-ROUTE_EXTRACT_FALLBACK = ModelChoice("gemini", settings.gemini_fast_model,
-    "Comparable latency, separate provider so a single-vendor outage does not block extraction.")
+#
+# Safe-mode (default for real users): Sonnet primary, Haiku fallback.
+# Sonnet's hallucination rate on value-bearing sections (medications, vitals,
+# labs) is 5.8% vs Haiku's 13.1% on our 30-example live gold eval — a critical
+# difference for a medical app where a wrong dose or wrong lab value can hurt
+# a real person. Sonnet TTFT is slightly higher but under 1s in practice, and
+# Anthropic prompt caching keeps cost in fractions of a cent per report.
+#
+# Fast-mode (EXTRACT_SAFE_MODE=false): Haiku primary, Gemini Flash fallback —
+# the older latency-first routing. Use only when the workload is bulk/low-stakes.
+if settings.extract_safe_mode:
+    ROUTE_EXTRACT_PRIMARY = ModelChoice("anthropic", settings.claude_strong_model,
+        "Lowest hallucination on value-bearing medical fields (5.8% vs Haiku 13.1% on eval).")
+    ROUTE_EXTRACT_FALLBACK = ModelChoice("anthropic", settings.claude_fast_model,
+        "Same-provider fallback: if Sonnet is over-quota or slow, Haiku still produces structured JSON.")
+else:
+    ROUTE_EXTRACT_PRIMARY = ModelChoice("anthropic", settings.claude_fast_model,
+        "Lowest-latency frontier model with reliable JSON; prompt-cacheable system prompt.")
+    ROUTE_EXTRACT_FALLBACK = ModelChoice("gemini", settings.gemini_fast_model,
+        "Comparable latency, separate provider so a single-vendor outage does not block extraction.")
 
 # Vision OCR for scanned PDFs / phone photos.
 # Why Gemini 2.5 Flash: best-in-class throughput on multi-page document images,
@@ -116,17 +128,49 @@ async def stream_json(
     max_tokens: int = 2000,
     timeout_s: float | None = None,
 ) -> AsyncIterator[str]:
-    """Stream raw text tokens from the chosen model. Falls back on failure."""
+    """Stream raw text tokens from the chosen model.
+
+    Retries transient errors on the primary; if it still fails, falls back to
+    the secondary model (also with retries). Mid-stream failures after tokens
+    have started flowing are NOT retried — we don't want to duplicate output
+    in the caller's buffer.
+    """
     timeout_s = timeout_s or settings.extraction_timeout_s
     try:
-        async for chunk in _stream_one(system, user, choice, max_tokens, timeout_s):
+        async for chunk in _stream_with_retries(system, user, choice, max_tokens, timeout_s):
             yield chunk
         return
     except Exception:
         if fallback is None:
             raise
-    async for chunk in _stream_one(system, user, fallback, max_tokens, timeout_s):
+    async for chunk in _stream_with_retries(system, user, fallback, max_tokens, timeout_s):
         yield chunk
+
+
+async def _stream_with_retries(
+    system: str, user: str, choice: ModelChoice, max_tokens: int, timeout_s: float,
+    attempts: int = 3,
+) -> AsyncIterator[str]:
+    """Wrap _stream_one with retries on transient errors that occur *before*
+    we've yielded any tokens. Once tokens flow we can't safely retry without
+    duplicating output, so mid-stream failures propagate to the fallback chain.
+    """
+    import asyncio
+    import random
+    from ..retry import is_transient
+
+    for attempt in range(1, attempts + 1):
+        yielded = False
+        try:
+            async for chunk in _stream_one(system, user, choice, max_tokens, timeout_s):
+                yielded = True
+                yield chunk
+            return
+        except BaseException as exc:
+            if yielded or not is_transient(exc) or attempt == attempts:
+                raise
+            backoff = min(4.0, 0.3 * (2 ** (attempt - 1))) * (1 + random.uniform(-0.25, 0.25))
+            await asyncio.sleep(backoff)
 
 
 async def _stream_one(
@@ -286,9 +330,13 @@ async def vision_extract_text(images: list[bytes], mime: str = "image/png") -> s
             "data": base64.b64encode(img).decode(),
         }})
     content.append({"type": "text", "text": "Transcribe all text visible in these medical document images. Preserve structure. Output plain text only."})
-    msg = await client.messages.create(
-        model=settings.claude_strong_model, max_tokens=3000,
-        messages=[{"role": "user", "content": content}],
+    from ..retry import with_retries
+    msg = await with_retries(
+        lambda: client.messages.create(
+            model=settings.claude_strong_model, max_tokens=3000,
+            messages=[{"role": "user", "content": content}],
+        ),
+        label="vision_extract_text",
     )
     return "".join(b.text for b in msg.content if hasattr(b, "text"))
 

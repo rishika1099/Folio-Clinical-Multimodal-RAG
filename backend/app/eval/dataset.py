@@ -899,10 +899,16 @@ INTERACTION_GOLD: list[InteractionCase] = [
     InteractionCase(meds=["Clopidogrel", "Omeprazole", "Atorvastatin"],
                     expected={("clopidogrel", "omeprazole")},
                     note="CYP2C19 reduces clopidogrel activation"),
-    # Multi-pair: two interactions in one regimen
+    # Multi-pair: four interactions in one regimen (the curated DB now catches
+    # the NSAID-on-ACE-I and NSAID-blunts-aspirin pairs that older versions missed).
     InteractionCase(meds=["Warfarin", "Aspirin", "Ibuprofen", "Lisinopril"],
-                    expected={("warfarin", "aspirin"), ("warfarin", "ibuprofen")},
-                    note="Two warfarin interactions"),
+                    expected={
+                        ("warfarin", "aspirin"),
+                        ("warfarin", "ibuprofen"),
+                        ("aspirin", "ibuprofen"),
+                        ("ibuprofen", "lisinopril"),
+                    },
+                    note="Polypharmacy: warfarin pairs + NSAID-blunts-ASA + NSAID-on-ACE-I"),
     InteractionCase(meds=["Lisinopril", "Spironolactone", "Potassium chloride"],
                     expected={("lisinopril", "spironolactone"), ("lisinopril", "potassium")},
                     note="Double hyperkalemia hit"),

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import clsx from "clsx";
 import { Card, StatTile } from "../components/Card";
+import { friendlyError } from "../lib/errors";
 
 type ModelKey = string; // "haiku" | "sonnet" | "gpt" | "gemini"
 
@@ -36,7 +37,7 @@ export default function BenchmarksPage() {
     fetch("/eval-latest.json")
       .then(r => r.ok ? r.json() : Promise.reject(new Error(`HTTP ${r.status}`)))
       .then(setData)
-      .catch(e => setErr(e.message || "Failed to load benchmark report"));
+      .catch(e => setErr(friendlyError(e)));
   }, []);
 
   if (err) return (
@@ -174,9 +175,10 @@ export default function BenchmarksPage() {
           </div>
           <p className="text-[12px] text-ink-300 mt-4 leading-relaxed">
             All models were scored against the same {meta.n_extraction_examples}-example gold set with the identical prompt and scorer.
-            Sonnet input tokens cost 3× Haiku and output cost 3× — a Sonnet pass is ~3× the dollar for a marginal F1 lift on this corpus.
-            That's why Folio routes the hot path through Haiku, reserves Sonnet for the high-confidence consensus path,
-            and uses the same scorer to compare against OpenAI{data.models.gemini ? " and Google" : ""} as a cross-vendor sanity check.
+            On value-bearing fields (meds, vitals, labs) Sonnet's hallucination rate is <span className="font-semibold text-good-deep">5.8%</span> vs Haiku's <span className="font-semibold text-alert-deep">13.1%</span> —
+            critical for a medical app where the wrong dose or lab value is harmful. Folio's hot-path extraction therefore defaults to
+            Sonnet (safe mode); Haiku remains the same-provider fallback for resilience, and lives on as the speed-tier option for
+            workloads where you want streaming-first behaviour over maximum accuracy.
           </p>
         </Section>
       )}

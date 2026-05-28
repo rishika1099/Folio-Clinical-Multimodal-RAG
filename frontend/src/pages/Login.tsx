@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { api } from "../lib/api";
 import { isLoggedIn, setAuth } from "../lib/auth";
+import { friendlyError } from "../lib/errors";
 
 export default function LoginPage() {
   const [username, setUsername] = useState("");
@@ -11,7 +12,9 @@ export default function LoginPage() {
   const [allowSignup, setAllowSignup] = useState(true);
   const nav = useNavigate();
   const loc = useLocation();
+  const [search] = useSearchParams();
   const redirectTo = (loc.state as any)?.from || "/";
+  const justReset = search.get("reset") === "ok";
 
   useEffect(() => {
     if (isLoggedIn()) nav(redirectTo, { replace: true });
@@ -30,7 +33,9 @@ export default function LoginPage() {
       nav(redirectTo, { replace: true });
     } catch (e: any) {
       const msg = String(e?.message || "");
-      setError(msg.includes("401") ? "Incorrect username or password." : msg || "Sign-in failed.");
+      // Auth-specific override before falling back to the generic mapper.
+      if (msg.startsWith("401")) setError("Incorrect username or password.");
+      else setError(friendlyError(e));
     } finally { setBusy(false); }
   };
 
@@ -43,6 +48,11 @@ export default function LoginPage() {
           <p className="text-[13px] text-ink-300 mt-1.5 leading-relaxed">
             Welcome back.
           </p>
+          {justReset && (
+            <div className="mt-4 rounded-lg border border-good/30 bg-good-softer px-3 py-2 text-[12.5px] text-good-deep">
+              Password updated. Sign in with your new password.
+            </div>
+          )}
 
           <form onSubmit={submit} className="mt-5 space-y-3">
             <Field label="Username">
@@ -70,11 +80,12 @@ export default function LoginPage() {
             </button>
           </form>
 
-          {allowSignup && (
-            <div className="text-[12.5px] text-ink-300 mt-4 text-center">
-              New here? <Link to="/signup" className="link">Create an account</Link>
-            </div>
-          )}
+          <div className="text-[12.5px] text-ink-300 mt-4 flex items-center justify-between">
+            {allowSignup
+              ? <span>New here? <Link to="/signup" className="link">Create an account</Link></span>
+              : <span />}
+            <Link to="/forgot" className="link">Forgot password?</Link>
+          </div>
         </div>
         <Disclaimer />
       </div>

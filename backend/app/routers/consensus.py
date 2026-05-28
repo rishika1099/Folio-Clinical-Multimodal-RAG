@@ -22,6 +22,9 @@ router = APIRouter(prefix="/api/consensus", tags=["consensus"])
 
 @router.post("")
 async def run_consensus(payload: dict, user: UserPublic = Depends(require_auth)):
+    from ..ratelimit import enforce
+    await enforce("consensus", user.user_id)
+
     text = (payload.get("text") or "").strip()
     if not text:
         raise HTTPException(400, "text required")

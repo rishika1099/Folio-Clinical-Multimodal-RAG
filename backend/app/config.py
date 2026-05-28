@@ -36,5 +36,19 @@ class Settings(BaseSettings):
     gemini_fast_model: str = "gemini-2.5-flash"
     gemini_strong_model: str = "gemini-2.5-pro"
 
+    # ─── Extraction safety mode ────────────────────────────────────────────
+    # Hot-path extraction defaults to Sonnet, not Haiku. The live eval over
+    # our 30-example gold corpus shows Sonnet's hallucination rate on
+    # value-bearing fields (medications/vitals/labs) is 5.8% vs Haiku's
+    # 13.1% — a critical gap for a medical app where dose/value accuracy
+    # matters. Sonnet TTFT is ~50% slower than Haiku but still under 1s,
+    # so the perceived UX cost is minimal. Per-pass cost goes from $0.08
+    # to $0.24 against the eval corpus, which is fractions of a cent per
+    # real-world report.
+    #
+    # Override via env to revert to Haiku (e.g. for high-volume / lower-
+    # stakes flows): set EXTRACT_SAFE_MODE=false.
+    extract_safe_mode: bool = True
+
 
 settings = Settings()

@@ -9,6 +9,7 @@ import { SeverityChip } from "../components/Severity";
 import { postSSE } from "../lib/sse";
 import { parsePartial } from "../lib/partialJson";
 import { api, API_BASE } from "../lib/api";
+import { friendlyError } from "../lib/errors";
 
 type Mode = "text" | "pdf" | "image" | "voice";
 
@@ -42,7 +43,7 @@ export default function IngestPage() {
         if (e.event === "stage") setStages(s => [...s, JSON.parse(e.data)]);
         else if (e.event === "token") setBuf(b => b + (tryUnpack(e.data) ?? e.data));
         else if (e.event === "report") setReport(JSON.parse(e.data));
-        else if (e.event === "error") setError(JSON.parse(e.data).message);
+        else if (e.event === "error") setError(friendlyError(new Error(JSON.parse(e.data).message)));
         else if (e.event === "done") {
           qc.invalidateQueries({ queryKey: ["overview"] });
           qc.invalidateQueries({ queryKey: ["timeline"] });
@@ -50,7 +51,7 @@ export default function IngestPage() {
         }
       });
     } catch (err: any) {
-      setError(err?.message || "stream failed");
+      setError(friendlyError(err));
     } finally {
       setStreaming(false);
     }
@@ -72,7 +73,7 @@ export default function IngestPage() {
         qc.invalidateQueries({ queryKey: ["timeline"] });
         qc.invalidateQueries({ queryKey: ["chat-snapshot"] });
       } catch (err: any) {
-        setError(err?.message || "consensus failed");
+        setError(friendlyError(err));
       } finally {
         setStreaming(false);
       }
@@ -279,15 +280,32 @@ function VoiceCapture({ onClip, disabled }: { onClip: (blob: Blob) => void; disa
   const chunksRef = useRef<Blob[]>([]);
   const tickRef = useRef<number | null>(null);
 
+  // iPhone Safari ships no WebM encoder — pick a mime the browser actually
+  // supports, falling back to MP4 (which Whisper also accepts).
+  const pickMime = (): string => {
+    const candidates = ["audio/webm;codecs=opus", "audio/webm", "audio/mp4;codecs=mp4a.40.2", "audio/mp4"];
+    for (const c of candidates) {
+      // @ts-expect-error MediaRecorder type lacks isTypeSupported in older lib.dom
+      if (typeof MediaRecorder !== "undefined" && MediaRecorder.isTypeSupported?.(c)) return c;
+    }
+    return "";
+  };
+
   const start = async () => {
     try {
+      if (!navigator.mediaDevices?.getUserMedia) {
+        alert("Your browser doesn't support voice recording. Try Chrome, Edge, or recent Safari.");
+        return;
+      }
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      const rec = new MediaRecorder(stream, { mimeType: "audio/webm" });
+      const mime = pickMime();
+      const rec = mime ? new MediaRecorder(stream, { mimeType: mime }) : new MediaRecorder(stream);
       chunksRef.current = [];
       rec.ondataavailable = (e) => { if (e.data.size) chunksRef.current.push(e.data); };
       rec.onstop = () => {
-        const blob = new Blob(chunksRef.current, { type: "audio/webm" });
+        const blob = new Blob(chunksRef.current, { type: rec.mimeType || mime || "audio/webm" });
         stream.getTracks().forEach(t => t.stop());
+        if (blob.size < 1000) { alert("Recording was too quiet. Try again."); return; }
         onClip(blob);
       };
       rec.start();
@@ -295,8 +313,15 @@ function VoiceCapture({ onClip, disabled }: { onClip: (blob: Blob) => void; disa
       setRecording(true);
       setElapsed(0);
       tickRef.current = window.setInterval(() => setElapsed(e => e + 1), 1000);
-    } catch {
-      alert("Could not access microphone");
+    } catch (e: any) {
+      const name = e?.name || "";
+      if (name === "NotAllowedError" || name === "PermissionDeniedError") {
+        alert("Microphone access was denied. Allow it in your browser settings and try again.");
+      } else if (name === "NotFoundError") {
+        alert("No microphone was found on this device.");
+      } else {
+        alert("We couldn't start recording. Try again, or upload an audio file instead.");
+      }
     }
   };
   const stop = () => {
@@ -414,7 +439,7 @@ function ConfidenceToggle({ on, onChange }: { on: boolean; onChange: (b: boolean
           <span className="chip chip-info">multi-LLM consensus</span>
         </div>
         <div className="text-[12.5px] text-ink-200 leading-relaxed">
-          Off: single fast model (Claude Haiku, ~1.5s, streaming). On: parallel ensemble across Claude Sonnet, GPT-4.1, and Gemini Pro with field-level vector clustering and per-field agreement scoring (~6–10s, no streaming). Use this when the report is high-stakes.
+          Off: single safety-tuned model (Claude Sonnet 4.5, ~2s, streaming) — picked for its low hallucination rate on doses and lab values. On: parallel ensemble across Sonnet, GPT-4.1, and Gemini Pro with field-level vector clustering and per-field agreement scoring (~6–10s, no streaming). Use this when the report is high-stakes.
         </div>
       </div>
     </div>

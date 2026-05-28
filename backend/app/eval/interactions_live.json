@@ -1,14 +1,14 @@
 {
   "n_cases": 17,
-  "tp": 12,
+  "tp": 14,
   "fp": 0,
   "fn": 0,
   "precision": 1.0,
   "recall": 1.0,
   "f1": 1.0,
   "accuracy": 1.0,
-  "n_total_pairs_expected": 12,
-  "n_total_pairs_predicted": 12,
+  "n_total_pairs_expected": 14,
+  "n_total_pairs_predicted": 14,
   "per_case": [
     {
       "meds": [
@@ -108,15 +108,19 @@
         "Lisinopril"
       ],
       "expected": [
+        "aspirin+ibuprofen",
         "aspirin+warfarin",
+        "ibuprofen+lisinopril",
         "ibuprofen+warfarin"
       ],
       "predicted": [
+        "aspirin+ibuprofen",
         "aspirin+warfarin",
+        "ibuprofen+lisinopril",
         "ibuprofen+warfarin"
       ],
       "ok": true,
-      "note": "Two warfarin interactions"
+      "note": "Polypharmacy: warfarin pairs + NSAID-blunts-ASA + NSAID-on-ACE-I"
     },
     {
       "meds": [

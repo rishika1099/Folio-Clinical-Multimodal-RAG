@@ -119,6 +119,9 @@ def _spawn_suggestions(report_id: str, user_id: str):
 
 @router.post("/text")
 async def ingest_text(payload: dict, user: UserPublic = Depends(require_auth)):
+    from ..ratelimit import enforce
+    await enforce("ingest", user.user_id)
+
     text = (payload.get("text") or "").strip()
     if not text:
         raise HTTPException(400, "text required")
@@ -138,6 +141,9 @@ async def ingest_text(payload: dict, user: UserPublic = Depends(require_auth)):
 
 @router.post("/pdf")
 async def ingest_pdf(file: UploadFile = File(...), user: UserPublic = Depends(require_auth)):
+    from ..ratelimit import enforce
+    await enforce("ingest", user.user_id)
+
     content = await file.read()
     if not content:
         raise HTTPException(400, "empty file")
@@ -187,6 +193,9 @@ async def ingest_image(file: UploadFile = File(...), user: UserPublic = Depends(
       - photo of a paper report / label → fills medications/labs/vitals
         from the visible text
     """
+    from ..ratelimit import enforce
+    await enforce("vision", user.user_id)
+
     content = await file.read()
     if not content:
         raise HTTPException(400, "empty file")
@@ -273,6 +282,9 @@ async def ingest_image(file: UploadFile = File(...), user: UserPublic = Depends(
 
 @router.post("/voice")
 async def ingest_voice(file: UploadFile = File(...), user: UserPublic = Depends(require_auth)):
+    from ..ratelimit import enforce
+    await enforce("ingest", user.user_id)
+
     audio = await file.read()
     if not audio:
         raise HTTPException(400, "empty audio")

@@ -2,11 +2,13 @@ import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { api } from "../lib/api";
 import { isLoggedIn, setAuth } from "../lib/auth";
+import { friendlyError } from "../lib/errors";
 import { Brand, Disclaimer, Field } from "./Login";
 
 export default function SignupPage() {
   const [username, setUsername] = useState("");
   const [displayName, setDisplayName] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
   const [busy, setBusy] = useState(false);
@@ -31,16 +33,15 @@ export default function SignupPage() {
           username: username.trim().toLowerCase(),
           password,
           display_name: displayName.trim(),
+          email: email.trim().toLowerCase(),
         }),
       });
       setAuth(res.token, res.user);
       nav("/", { replace: true });
     } catch (e: any) {
       const msg = String(e?.message || "");
-      if (msg.includes("409")) setError("That username is already taken.");
-      else if (msg.includes("400")) setError("Username or password didn't meet the requirements.");
-      else if (msg.includes("403")) setError("Signups are disabled on this server.");
-      else setError(msg || "Sign-up failed.");
+      if (msg.startsWith("403")) setError("Signups are disabled on this server.");
+      else setError(friendlyError(e));
     } finally { setBusy(false); }
   };
 
@@ -72,6 +73,13 @@ export default function SignupPage() {
                   type="text"
                   value={displayName} onChange={(e) => setDisplayName(e.target.value)}
                   className="input" placeholder="Rishika M." disabled={busy}
+                />
+              </Field>
+              <Field label="Email (optional — only used to reset your password)">
+                <input
+                  type="email" autoCapitalize="off" autoCorrect="off"
+                  value={email} onChange={(e) => setEmail(e.target.value)}
+                  className="input" placeholder="you@example.com" disabled={busy}
                 />
               </Field>
               <Field label="Password">

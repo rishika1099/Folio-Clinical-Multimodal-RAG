@@ -106,6 +106,7 @@ class User(BaseModel):
     username: str
     display_name: str = ""
     password_hash: str
+    email: Optional[str] = ""        # optional, used only for password-reset
     created_at: str = Field(default_factory=lambda: datetime.utcnow().isoformat())
 
 

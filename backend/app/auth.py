@@ -81,7 +81,8 @@ async def find_user_by_username(username: str) -> User | None:
     return User(**doc) if doc else None
 
 
-async def create_user(username: str, password: str, display_name: str = "") -> UserPublic:
+async def create_user(username: str, password: str, display_name: str = "",
+                       email: str = "") -> UserPublic:
     """Insert a new user. Raises HTTPException(409) if username is taken."""
     if not username or not password:
         raise HTTPException(status.HTTP_400_BAD_REQUEST, "username and password required")
@@ -95,10 +96,16 @@ async def create_user(username: str, password: str, display_name: str = "") -> U
     if await find_user_by_username(username):
         raise HTTPException(status.HTTP_409_CONFLICT, "username already taken")
 
+    # Email is optional but if present, basic shape check (no full RFC compliance).
+    email_clean = (email or "").strip().lower()
+    if email_clean and ("@" not in email_clean or "." not in email_clean.split("@")[-1]):
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, "email doesn't look right — leave it blank if you'd rather skip")
+
     user = User(
         username=username,
         display_name=(display_name or username).strip(),
         password_hash=hash_password(password),
+        email=email_clean,
     )
     db = get_db()
     await db.users.insert_one(user.model_dump())
