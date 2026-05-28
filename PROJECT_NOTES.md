@@ -1,4 +1,4 @@
-# Folio — Engineering Notes
+# Folio - Engineering Notes
 
 A reference document for the design decisions, the things you can claim during a demo, and the next-step improvements to articulate when the interviewer pushes.
 
@@ -32,7 +32,7 @@ Deployed free-forever via Vercel (frontend) + Render (backend) + Atlas M0 (Mongo
 
 ---
 
-## 3. What has been built — feature-by-feature
+## 3. What has been built - feature-by-feature
 
 ### 3.1 Multimodal ingest pipeline
 
@@ -62,7 +62,7 @@ The UI surfaces this as a "Consensus run" panel: provider dots per field, color-
 **Code:** `backend/app/pipeline/consensus.py`, `backend/app/routers/consensus.py`.
 
 **Why this matters:** Interview-relevant. Mirrors Arcsine's multi-LLM evaluation + alignment-verification stages directly. You can credibly say:
-> "I ran three frontier models in parallel; instead of asking them to debate (which causes correlated failure when they all hallucinate the same way), I aligned their outputs with embedding similarity — that's a vector-based consensus check, not an LLM-based one."
+> "I ran three frontier models in parallel; instead of asking them to debate (which causes correlated failure when they all hallucinate the same way), I aligned their outputs with embedding similarity - that's a vector-based consensus check, not an LLM-based one."
 
 ### 3.3 RAG over patient records
 
@@ -72,7 +72,7 @@ The chat UI renders **citation chips** under each Folio reply linking to the cit
 
 **Code:** `backend/app/rag/{embeddings,store}.py`, `backend/app/routers/chat.py`.
 
-**Why brute-force cosine:** for <1000 reports the entire embedding table fits in memory, brute-force runs in <10ms, and the implementation has zero ops cost (no vector DB to maintain). Swappable for Atlas Vector Search or pgvector by changing one function — the abstraction stays.
+**Why brute-force cosine:** for <1000 reports the entire embedding table fits in memory, brute-force runs in <10ms, and the implementation has zero ops cost (no vector DB to maintain). Swappable for Atlas Vector Search or pgvector by changing one function - the abstraction stays.
 
 ### 3.4 Chat companion with patient-grounded system prompt
 
@@ -94,12 +94,12 @@ After every ingest, six suggestion generators run in parallel via `asyncio.gathe
 
 | Generator | Source | LLM? |
 |---|---|---|
-| Trends | vitals_timeline + labs_timeline (deterministic Python) | No — LLM only writes the natural-language summary |
-| Drug interactions | curated interaction table (RxNorm/openFDA-style) | **No** — explicitly avoids LLM hallucination of dosage/interaction risk |
+| Trends | vitals_timeline + labs_timeline (deterministic Python) | No - LLM only writes the natural-language summary |
+| Drug interactions | curated interaction table (RxNorm/openFDA-style) | **No** - explicitly avoids LLM hallucination of dosage/interaction risk |
 | Follow-ups | guideline-based recheck calendar (deterministic) | No |
 | Differentials | symptoms + active dx + labs → Claude Sonnet | Yes (cold path, quality over latency) |
 | Lifestyle | active conditions → canned dietary patterns | No |
-| Risk indicators | BP + LDL + HbA1c → simplified cardiometabolic + CKD heuristics | No — explicitly says "insufficient data" rather than inventing |
+| Risk indicators | BP + LDL + HbA1c → simplified cardiometabolic + CKD heuristics | No - explicitly says "insufficient data" rather than inventing |
 
 Each generator is wrapped in `_safe_run` so one failure doesn't take down the others.
 
@@ -124,7 +124,7 @@ Image ingest used to be OCR-only and was useless for clinical photos with no tex
 - Returns the unified schema directly from the image
 - Populates `symptoms` with visible observations (location, color, distribution, size, borders, signs of inflammation)
 - Populates `red_flags` for concerning features
-- Lists possible differentials in `raw_summary` using HEDGED language only ("findings consistent with…", "differential includes…") — never "this is X"
+- Lists possible differentials in `raw_summary` using HEDGED language only ("findings consistent with…", "differential includes…") - never "this is X"
 - Explicitly forbidden from filling `diagnoses` from a body-part photo unless the image *contains* a diagnosis label
 
 Original image bytes are stored in GridFS (`backend/app/storage.py`) so the report-detail page can show a download button + inline preview instead of the garbled CID-glyph text that pdfplumber emits when fonts have no ToUnicode map.
@@ -155,15 +155,15 @@ Regex-first scrubber catches SSN, email, phone, MRN, DOB. <5ms in-process, no pr
 
 ### 3.12 Caching at two layers
 
-1. **Anthropic prompt caching** — the (large) extraction system prompt + few-shot examples are marked `cache_control: ephemeral` so identical-prompt calls within ~5min hit the cache and only the user message tokens are billed.
-2. **Redis response cache** — key = `sha256(scrubbed_input + system_prompt_version + model_id)`, TTL 24h. Identical re-uploads return instantly with no API call.
-3. **Embedding cache** — same Redis instance keyed on `sha256(text + embedding_model)`, TTL 30 days.
+1. **Anthropic prompt caching** - the (large) extraction system prompt + few-shot examples are marked `cache_control: ephemeral` so identical-prompt calls within ~5min hit the cache and only the user message tokens are billed.
+2. **Redis response cache** - key = `sha256(scrubbed_input + system_prompt_version + model_id)`, TTL 24h. Identical re-uploads return instantly with no API call.
+3. **Embedding cache** - same Redis instance keyed on `sha256(text + embedding_model)`, TTL 30 days.
 
 **Code:** `backend/app/cache.py`, `backend/app/rag/embeddings.py`.
 
 ### 3.13 Single-aggregation overview
 
-The Overview endpoint uses one `$facet` aggregation in Mongo to fetch active diagnoses, active meds, latest of each vital type, top 3 unfdismissed suggestions, and recent red flags — all in one round trip. Indexes on `(uploaded_at desc)`, `(recorded_at desc, type)`, `(severity, dismissed, created_at desc)`, etc. defined at startup.
+The Overview endpoint uses one `$facet` aggregation in Mongo to fetch active diagnoses, active meds, latest of each vital type, top 3 unfdismissed suggestions, and recent red flags - all in one round trip. Indexes on `(uploaded_at desc)`, `(recorded_at desc, type)`, `(severity, dismissed, created_at desc)`, etc. defined at startup.
 
 ### 3.14 Free-forever deployment
 
@@ -177,10 +177,10 @@ The Overview endpoint uses one `$facet` aggregation in Mongo to fetch active dia
 Instead of asking models to debate (Arcsine's "self-reflection" stage, which is the standard approach but suffers from correlated failure when models share training data), I align outputs with **vector similarity**. Claim: cheaper, faster, immune to "all models confidently agree on the same hallucination" because the alignment is computed externally from the model. The trade-off: embeddings can mark two wrong-but-equivalent values as "agreeing", which is why the system also keeps a per-cluster `votes` count and would flag low-confidence fields for human review in production.
 
 ### 4.2 Streaming + tolerant partial JSON
-Emitting structured JSON token-by-token and rendering progressively as it arrives is unusual — most apps wait for the full response. The custom partial-JSON parser closes open structures speculatively, letting React render complete-looking nested objects mid-stream. **Perceived latency is what users experience.** First diagnosis on screen in ~700ms even when full extraction takes 2.5s.
+Emitting structured JSON token-by-token and rendering progressively as it arrives is unusual - most apps wait for the full response. The custom partial-JSON parser closes open structures speculatively, letting React render complete-looking nested objects mid-stream. **Perceived latency is what users experience.** First diagnosis on screen in ~700ms even when full extraction takes 2.5s.
 
 ### 4.3 Hot path vs cold path explicit separation
-The user-facing latency budget contains *only* what the user is waiting on. Suggestions, embeddings (already in `gather`), risk scores, drug interactions all run after the response is closed. The architecture is honest about which work is on the critical path and which isn't — explicit in the code, not implicit.
+The user-facing latency budget contains *only* what the user is waiting on. Suggestions, embeddings (already in `gather`), risk scores, drug interactions all run after the response is closed. The architecture is honest about which work is on the critical path and which isn't - explicit in the code, not implicit.
 
 ### 4.4 Vision-clinical extraction unified with text extraction
 Both code paths converge on the same `ExtractedReport` schema. The vision model is asked to populate `symptoms` (observations) and `red_flags` (concerning findings) instead of `diagnoses`, with hedged-language `raw_summary` for differentials. This means the same downstream pipeline (persist, embed, suggest, RAG) handles all input modalities without branching logic.
@@ -189,7 +189,7 @@ Both code paths converge on the same `ExtractedReport` schema. The vision model 
 Drug interactions, follow-up calendars, risk scores, trend detection are pure Python. The LLM is only used to phrase them when needed. Specifically: the drug-interaction lookup is a curated table, not a model call. Dosage and interaction-severity hallucinations are catastrophic in clinical contexts; structurally avoiding them is a system-design choice, not a prompt-engineering one.
 
 ### 4.6 PII scrub before cache key + before model call
-A subtle one — by scrubbing PII *before* computing the cache key, two re-uploads of the same content with different PII still hit cache. A naive implementation would scrub after caching and lose the dedup benefit.
+A subtle one - by scrubbing PII *before* computing the cache key, two re-uploads of the same content with different PII still hit cache. A naive implementation would scrub after caching and lose the dedup benefit.
 
 ### 4.7 Original-bytes preservation
 Persisting the original PDF/image to GridFS *before* the LLM runs means the user can always download the source even when extraction fails. Most extraction systems lose the source after the first transformation.
@@ -202,7 +202,7 @@ Persisting the original PDF/image to GridFS *before* the LLM runs means the user
 Both pre- and post-processing are gathered. The LLM provider's network round-trip is the hard floor on latency. Mitigations: streaming for perceived latency, prompt caching for repeat-cost, response caching for repeat inputs, fast-model routing for the hot path.
 
 ### 5.2 Brute-force cosine retrieval
-Loads all embeddings into memory each request. Fine to ~1000 reports (single-user assumption); beyond that, swap for `pgvector` or Atlas Vector Search. The retrieval interface is one function — no other code changes needed.
+Loads all embeddings into memory each request. Fine to ~1000 reports (single-user assumption); beyond that, swap for `pgvector` or Atlas Vector Search. The retrieval interface is one function - no other code changes needed.
 
 ### 5.3 Single-user model
 No auth, no RBAC, no multi-tenant. Intentionally out of scope for the demo. Real product would need HIPAA-compliant infra (BAAs, audit logs, encryption-at-rest claims, SOC2).
@@ -278,7 +278,7 @@ FHIR R4 endpoints would let the system pull from a real chart instead of relying
 | Arcsine stage | Folio equivalent | Code |
 |---|---|---|
 | Multi-LLM generation | `consensus_extract()` runs Claude/GPT/Gemini in `asyncio.gather` | `pipeline/consensus.py` |
-| Self-reflection / debate | **Not implemented**; replaced with embedding alignment (next bullet). Defensible: avoids correlated-failure consensus. | — |
+| Self-reflection / debate | **Not implemented**; replaced with embedding alignment (next bullet). Defensible: avoids correlated-failure consensus. | - |
 | Embedding alignment | `cosine` clustering over `text-embedding-3-small` of canonical field keys, threshold 0.78 | `pipeline/consensus.py::FIELD_KEY` + `rag/embeddings.py::cosine` |
 | Output evaluation | per-field confidence = unique_providers / models_succeeded; overall = mean of per-field | `pipeline/consensus.py::_overall_agreement` |
 | Best output selection | per cluster, prefer Anthropic → OpenAI → Gemini representative; sort field by confidence desc | same |
@@ -286,7 +286,7 @@ FHIR R4 endpoints would let the system pull from a real chart instead of relying
 
 You can credibly say in the interview:
 
-> "I built the same shape of pipeline they describe. The decision I made differently was using embedding-based alignment instead of an LLM-based reflection round. Reflection rounds are appealing but they create correlated failure when the models share training data — embedding alignment is computed external to the models and is significantly cheaper. I'd add reflection back as an optional escalation only on fields where embedding alignment shows low agreement."
+> "I built the same shape of pipeline they describe. The decision I made differently was using embedding-based alignment instead of an LLM-based reflection round. Reflection rounds are appealing but they create correlated failure when the models share training data - embedding alignment is computed external to the models and is significantly cheaper. I'd add reflection back as an optional escalation only on fields where embedding alignment shows low agreement."
 
 ---
 
@@ -294,10 +294,10 @@ You can credibly say in the interview:
 
 Folio practices privacy at four layers:
 
-1. **Data** — regex PII scrubber strips SSN, MRN, email, phone, DOB before the LLM call. Cache keys are computed on the scrubbed text.
-2. **Model** — providers used (Anthropic, OpenAI, Gemini API tier) don't train on API inputs by default; we don't fine-tune on patient data.
-3. **Infra** — cors origin allow-list locks browser access to the deployed frontend; `.env` keys are gitignored; HTTPS everywhere on the deployed URL.
-4. **Governance** — disclaimer banner is permanent; "not medical advice" framing is in the system prompt and the UI; suggestions are dismissable and audit-logged.
+1. **Data** - regex PII scrubber strips SSN, MRN, email, phone, DOB before the LLM call. Cache keys are computed on the scrubbed text.
+2. **Model** - providers used (Anthropic, OpenAI, Gemini API tier) don't train on API inputs by default; we don't fine-tune on patient data.
+3. **Infra** - cors origin allow-list locks browser access to the deployed frontend; `.env` keys are gitignored; HTTPS everywhere on the deployed URL.
+4. **Governance** - disclaimer banner is permanent; "not medical advice" framing is in the system prompt and the UI; suggestions are dismissable and audit-logged.
 
 For HIPAA: would need BAAs with each provider, encryption at rest claims for Mongo + Redis, audit logs for every read/write, RBAC for multi-user. Out of scope for a portfolio demo; explicitly called out as future work.
 

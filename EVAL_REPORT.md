@@ -1,15 +1,15 @@
-# Folio — Evaluation Report
+# Folio - Evaluation Report
 
 _Generated 2026-05-27 · 30 extraction examples · 10 RAG queries · 6 PII cases · 14 chat probes · 17 drug-interaction cases_
 
-**Extraction predictions: LIVE** across **3 vendors** — Anthropic Haiku 4.5, Anthropic Sonnet 4.5, OpenAI GPT-4.1.
+**Extraction predictions: LIVE** across **3 vendors** - Anthropic Haiku 4.5, Anthropic Sonnet 4.5, OpenAI GPT-4.1.
 
 > Gemini 2.5 Flash was wired up identically; the free-tier daily token quota
 > capped a full 30-example sweep, so it is omitted from the head-to-head
 > here. The harness is provider-agnostic (`--model gemini-…` works the same
 > way), and the per-call cost is bounded if a paid key is provided.
 
-All metrics are reproducible — `python -m app.eval.runner` regenerates the synthesised baseline; `python -m app.eval.compare` merges live model predictions on top.
+All metrics are reproducible - `python -m app.eval.runner` regenerates the synthesised baseline; `python -m app.eval.compare` merges live model predictions on top.
 
 ## Live model head-to-head (30-example gold set)
 
@@ -23,7 +23,7 @@ Same prompt, same scorer, same gold set. Sub-cent costs throughout.
 
 **Takeaway.** Haiku wins macro-F1 (it doesn't regress on hard sections like Sonnet does) but pays for it with ~2× hallucination on value-bearing fields. Sonnet and GPT-4.1 sit within 0.5 pts of each other on micro-F1, halving hallucination, at 3× and ~1.3× Haiku's cost respectively. This eval is exactly *why* Folio routes the hot path through Haiku and reserves Sonnet for the high-confidence consensus path.
 
-## Multi-LLM consensus — live (Haiku + Sonnet + GPT-4.1)
+## Multi-LLM consensus - live (Haiku + Sonnet + GPT-4.1)
 
 Replaces the simulated-perturbation consensus baseline below. Field-level outputs from three vendors are embedded with OpenAI `text-embedding-3-small`, clustered by cosine ≥ 0.78, and a ≥ 2/3 vote keeps only the agreed-on facts.
 
@@ -38,9 +38,9 @@ Replaces the simulated-perturbation consensus baseline below. Field-level output
 | Consensus F1 (vs gold) | **83.0%** |
 | Fleiss κ (3 raters) | -0.117 |
 
-> Fleiss κ being near zero is expected at this gold-set size: models agree on the easy facts and disagree on the edge cases, where the agreement-by-chance baseline is high. The actionable number is *cluster correctness* — when ≥ 2/3 vendors agree, the kept fact is right 75.6% of the time vs ~84% for any single model on its own outputs, *but* you get calibrated confidence (you know which clusters are unanimous vs majority).
+> Fleiss κ being near zero is expected at this gold-set size: models agree on the easy facts and disagree on the edge cases, where the agreement-by-chance baseline is high. The actionable number is *cluster correctness* - when ≥ 2/3 vendors agree, the kept fact is right 75.6% of the time vs ~84% for any single model on its own outputs, *but* you get calibrated confidence (you know which clusters are unanimous vs majority).
 
-## Live chat groundedness — Claude Sonnet 4.5
+## Live chat groundedness - Claude Sonnet 4.5
 
 Each probe is a real round-trip: snapshot built from the gold corpus, top-4 RAG passages retrieved with OpenAI live embeddings, Sonnet answers, scored against `must_contain_any` / `must_cite` / `must_avoid`.
 
@@ -52,11 +52,11 @@ Each probe is a real round-trip: snapshot built from the gold corpus, top-4 RAG 
 | Red-flag escalation | **100.0%** |
 | Hallucination guard | **100.0%** |
 
-Coverage: 8 factual lookups (A1C, LDL, TSH, eGFR, EF, antidepressant, oncology med, polypharmacy interaction question), 4 red-flag emergencies (stroke, MI, anaphylaxis, painless monocular vision loss), 2 refusal probes ("Do I have lupus?", "When was my last COVID vaccine?" — both correctly say *not in record*).
+Coverage: 8 factual lookups (A1C, LDL, TSH, eGFR, EF, antidepressant, oncology med, polypharmacy interaction question), 4 red-flag emergencies (stroke, MI, anaphylaxis, painless monocular vision loss), 2 refusal probes ("Do I have lupus?", "When was my last COVID vaccine?" - both correctly say *not in record*).
 
 ## Drug-interaction safety net (curated DB, not LLM)
 
-This is the *anti-hallucination* surface — drug-interaction flags come from a curated table the LLM never writes to. Tested against 17 hand-authored cases.
+This is the *anti-hallucination* surface - drug-interaction flags come from a curated table the LLM never writes to. Tested against 17 hand-authored cases.
 
 | Metric | Value |
 |---|---:|
@@ -166,12 +166,12 @@ Top-k retrieval over the gold corpus for each canonical query. Embeddings are **
 
 ## 3. Multi-LLM consensus
 
-Three simulated models (Anthropic / OpenAI / Gemini perturbations of gold) are passed through the same field-level clustering + voting pipeline used in production. This benchmarks the *consensus algorithm*, not the underlying models — running against live models requires API budget.
+Three simulated models (Anthropic / OpenAI / Gemini perturbations of gold) are passed through the same field-level clustering + voting pipeline used in production. This benchmarks the *consensus algorithm*, not the underlying models - running against live models requires API budget.
 
 | Metric | Value |
 |---|---:|
 | Unanimous agreement (3/3 models had item) | 36.6% |
-| Convergence (≥2/3 had item — what consensus keeps) | 79.4% |
+| Convergence (≥2/3 had item - what consensus keeps) | 79.4% |
 | Cluster representative matches gold | 100.0% |
 | Mean single-model recall (across 3 models) | 72.0% |
 | Consensus recall | **79.4%** |
@@ -179,7 +179,7 @@ Three simulated models (Anthropic / OpenAI / Gemini perturbations of gold) are p
 | Fleiss' κ (raw, for reference) | -0.048 |
 | Input-token cost ratio (consensus vs single) | 3.0× |
 
-> **Note on Fleiss κ.** For this synthetic perturbation scheme (model 0 drops last, model 1 drops first, model 2 perfect) the κ can read slightly negative because the disagreements happen systematically rather than at random — the formula penalises structured disagreement. The actionable numbers are convergence rate and consensus recall lift, both shown above.
+> **Note on Fleiss κ.** For this synthetic perturbation scheme (model 0 drops last, model 1 drops first, model 2 perfect) the κ can read slightly negative because the disagreements happen systematically rather than at random - the formula penalises structured disagreement. The actionable numbers are convergence rate and consensus recall lift, both shown above.
 
 ## 4. PII scrubbing
 

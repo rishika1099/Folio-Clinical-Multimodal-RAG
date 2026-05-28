@@ -1,4 +1,4 @@
-# Deploy Folio — free forever
+# Deploy Folio - free forever
 
 Stack:
 
@@ -13,7 +13,7 @@ End result: a public URL like `https://folio-rishika.vercel.app` you can share. 
 
 ---
 
-## 0. Prep — push to GitHub
+## 0. Prep - push to GitHub
 
 ```bash
 cd "/Users/rishika/Desktop/Projects/Medical Chatbot"
@@ -33,7 +33,7 @@ git branch -M main
 git push -u origin main
 ```
 
-⚠️ Double-check `git diff --cached -- .env.example` before pushing — only placeholders should be in there. Real keys live in `.env` which is gitignored.
+⚠️ Double-check `git diff --cached -- .env.example` before pushing - only placeholders should be in there. Real keys live in `.env` which is gitignored.
 
 ---
 
@@ -47,7 +47,7 @@ git push -u origin main
    ```
    mongodb+srv://folio:<password>@cluster0.xxxxx.mongodb.net/?retryWrites=true&w=majority
    ```
-   Replace `<password>` with the actual one. Save this — you'll paste it into Render as `MONGO_URL`.
+   Replace `<password>` with the actual one. Save this - you'll paste it into Render as `MONGO_URL`.
 
 ---
 
@@ -55,7 +55,7 @@ git push -u origin main
 
 1. Sign up: https://upstash.com (Google login is fastest).
 2. **Redis** → **Create database** → name `folio`, region close to your Render region, **Free** tier.
-3. On the database page, copy the **`UPSTASH_REDIS_REST_URL`** is for HTTP — we want the standard **Redis URL** under "Connect → Redis CLI". Looks like:
+3. On the database page, copy the **`UPSTASH_REDIS_REST_URL`** is for HTTP - we want the standard **Redis URL** under "Connect → Redis CLI". Looks like:
    ```
    rediss://default:<password>@<host>.upstash.io:6379
    ```
@@ -78,20 +78,20 @@ git push -u origin main
    | `OPENAI_API_KEY` | your OpenAI key |
    | `GEMINI_API_KEY` | your Gemini key |
    | `JWT_SECRET` | Render auto-generates this from `render.yaml`. Leave the generated value. |
-   | `ALLOW_SIGNUP` | `true` (default) — anyone can sign up. After you and your family have registered, switch to `false` to lock the instance. |
-   | `CORS_ORIGINS` | leave blank for now — fill in step 5 once you have the Vercel URL |
+   | `ALLOW_SIGNUP` | `true` (default) - anyone can sign up. After you and your family have registered, switch to `false` to lock the instance. |
+   | `CORS_ORIGINS` | leave blank for now - fill in step 5 once you have the Vercel URL |
 
    Click **Save Changes**. Render redeploys automatically.
 
-   Auth is always on; users register via the `/signup` page and log in via `/login`. There's no shared password — each person has their own account and their own private record.
+   Auth is always on; users register via the `/signup` page and log in via `/login`. There's no shared password - each person has their own account and their own private record.
 
-5. Note the service URL — looks like `https://folio-backend.onrender.com`. Test it:
+5. Note the service URL - looks like `https://folio-backend.onrender.com`. Test it:
    ```bash
    curl https://folio-backend.onrender.com/api/dev/health
    # → {"mongo": true}
    ```
 
-6. **Do NOT seed the cloud database** for a real personal deployment — you want it to start empty so your actual record builds from scratch. (If you want sample data for a demo screencast only, Render's **Shell** tab on the service can run `python -m app.seed`, but skip this for personal use.)
+6. **Do NOT seed the cloud database** for a real personal deployment - you want it to start empty so your actual record builds from scratch. (If you want sample data for a demo screencast only, Render's **Shell** tab on the service can run `python -m app.seed`, but skip this for personal use.)
 
 ---
 
@@ -108,7 +108,7 @@ git push -u origin main
    | Key | Value |
    |---|---|
    | `VITE_API_URL` | `https://folio-backend.onrender.com` (the Render URL from step 3.5) |
-5. Click **Deploy**. Takes ~1 minute. Note the assigned URL — looks like `https://folio-rishika.vercel.app`.
+5. Click **Deploy**. Takes ~1 minute. Note the assigned URL - looks like `https://folio-rishika.vercel.app`.
 
 ---
 
@@ -120,7 +120,7 @@ Back in Render → **Environment** → set:
 CORS_ORIGINS=https://folio-rishika.vercel.app,http://localhost:5173
 ```
 
-Save → Render redeploys. The backend now only accepts browser requests from your Vercel frontend (and your local dev). API curl from the terminal still works — CORS only applies to browsers.
+Save → Render redeploys. The backend now only accepts browser requests from your Vercel frontend (and your local dev). API curl from the terminal still works - CORS only applies to browsers.
 
 ---
 
@@ -156,4 +156,4 @@ Zero, indefinitely. Anthropic/OpenAI/Gemini keys are pay-per-use; expect <$1/mon
 - **"Mongo timeout" on Render**: Atlas Network Access still set to single IP? Switch to `0.0.0.0/0`.
 - **CORS error in browser**: `CORS_ORIGINS` doesn't match your actual Vercel URL exactly (no trailing slash). Update and Render will redeploy.
 - **Chat returns "no API key"**: env vars not saved on Render. Re-check the **Environment** tab.
-- **Render build fails on Pillow / pdf2image**: the Dockerfile already installs `poppler-utils` and `libgl1`; if it still fails, bump the build to **Starter** plan ($7/mo) which has more memory — or split out heavy deps into a smaller requirements file. For demo traffic, free should work.
+- **Render build fails on Pillow / pdf2image**: the Dockerfile already installs `poppler-utils` and `libgl1`; if it still fails, bump the build to **Starter** plan ($7/mo) which has more memory - or split out heavy deps into a smaller requirements file. For demo traffic, free should work.

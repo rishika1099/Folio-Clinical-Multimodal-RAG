@@ -26,7 +26,7 @@
 └─────────────────────────────────────────────────────────────┘
 ```
 
-## Hot path — text/pdf/image/voice ingest
+## Hot path - text/pdf/image/voice ingest
 
 The user is waiting. Goal: p50 <2s, p95 <3s.
 
@@ -71,10 +71,10 @@ Client                Backend                   LLM            Mongo / Redis
 Key design choices:
 - **Single sequential bottleneck.** Pre- and post-processing are gathered. The LLM call is the only critical-path step.
 - **Streaming, not buffering.** SSE pushes raw token chunks; the frontend reconstructs the JSON as it arrives.
-- **Partial-JSON parsing on the client** (`frontend/src/lib/partialJson.ts`) tolerates open strings, arrays, and braces — closes them speculatively so we can render section-by-section while the backend is still streaming.
+- **Partial-JSON parsing on the client** (`frontend/src/lib/partialJson.ts`) tolerates open strings, arrays, and braces - closes them speculatively so we can render section-by-section while the backend is still streaming.
 - **Cache lookup before the LLM call.** Identical re-uploads of the same scrubbed text within 24h skip the API entirely.
 
-## Cold path — suggestions
+## Cold path - suggestions
 
 Runs after the SSE stream closes. The user already has their extraction.
 
@@ -96,7 +96,7 @@ backend                                                 mongo / providers
   │   suggestions collection ◀── insert_many
 ```
 
-The differentials suggestion is the only one that calls an LLM. The other five are deterministic computation; the LLM is at most used to phrase a body — we never let it invent values.
+The differentials suggestion is the only one that calls an LLM. The other five are deterministic computation; the LLM is at most used to phrase a body - we never let it invent values.
 
 ## Mongo schema
 
@@ -108,7 +108,7 @@ The differentials suggestion is the only one that calls an LLM. The other five a
 | `vitals_timeline` | `(recorded_at desc, type)` | time series, fast type-filter queries |
 | `labs_timeline` | `(recorded_at desc, test)` | time series for charts |
 | `suggestions` | `(severity, dismissed, created_at desc)`, `report_id` | inbox |
-| `dismissed_suggestions` | — | audit log |
+| `dismissed_suggestions` | - | audit log |
 
 The overview endpoint is **one** `$facet` aggregation, not 5 round-trips.
 
