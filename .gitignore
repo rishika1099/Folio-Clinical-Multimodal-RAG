@@ -9,3 +9,7 @@ dist/
 *.log
 .pytest_cache/
 backend/uploads/
+# Local credential scratch files — never commit.
+key.rtf
+*.secret
+*.secrets

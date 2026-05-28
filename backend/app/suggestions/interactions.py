@@ -3,10 +3,11 @@ Drug interaction check. LLMs hallucinate dosages and interactions, so we
 hit a real database (RxNorm + a small curated interaction table). The
 LLM is only used to write the human-readable rationale, never the lookup.
 """
-import httpx
+from __future__ import annotations
+from typing import TYPE_CHECKING
 
-from ..db import get_db
-from ..schemas import Suggestion
+if TYPE_CHECKING:
+    from ..schemas import Suggestion
 
 # Curated, non-exhaustive interaction table. In production this would be
 # DrugBank / openFDA. For the demo the curated list is sufficient and avoids
@@ -28,7 +29,33 @@ def _norm(name: str) -> str:
     return name.lower().split()[0] if name else ""
 
 
-async def check_interactions(report_id: str, user_id: str) -> list[Suggestion]:
+def detect_interactions(med_names: list[str]) -> list[tuple[str, str, str]]:
+    """
+    Pure (Mongo-free) interaction lookup. Returns a list of
+    (drug_a, drug_b, severity) tuples, one per distinct interacting
+    pair found in the curated table. Order within each pair matches
+    the table's canonical ordering.
+
+    Used by the eval harness so the same lookup the live suggestions
+    engine uses can be tested deterministically with a gold set.
+    """
+    names = [_norm(n) for n in med_names if n]
+    out: list[tuple[str, str, str]] = []
+    seen: set[tuple[str, str]] = set()
+    for i, a in enumerate(names):
+        for b in names[i + 1:]:
+            for key in [(a, b), (b, a)]:
+                if key in INTERACTIONS and key not in seen:
+                    sev_label, _ = INTERACTIONS[key]
+                    seen.add(key)
+                    out.append((key[0], key[1], sev_label))
+    return out
+
+
+async def check_interactions(report_id: str, user_id: str) -> list["Suggestion"]:
+    # Lazy imports keep this module importable in eval (no Mongo/HTTPX needed).
+    from ..db import get_db
+    from ..schemas import Suggestion
     db = get_db()
     meds = await db.medications_master.find({"user_id": user_id, "active": True}).to_list(length=50)
     names = [_norm(m.get("display_name") or m.get("name", "")) for m in meds]

@@ -87,8 +87,7 @@ def _safe_parse_json(text: str) -> dict:
         return {}
 
 
-async def predict_one(client, model: str, user_text: str) -> tuple[dict, dict]:
-    """Returns (parsed_prediction, meta)."""
+async def predict_anthropic(client, model: str, user_text: str) -> tuple[dict, dict]:
     t0 = time.perf_counter()
     msg = await client.messages.create(
         model=model,
@@ -97,28 +96,98 @@ async def predict_one(client, model: str, user_text: str) -> tuple[dict, dict]:
         messages=[{"role": "user", "content": f"Extract structured medical data from the following text:\n\n---\n{user_text}\n---"}],
     )
     elapsed_ms = (time.perf_counter() - t0) * 1000
-
     text = "".join(b.text for b in msg.content if hasattr(b, "text"))
     parsed = _safe_parse_json(text)
     usage = getattr(msg, "usage", None)
     meta = {
-        "elapsed_ms": round(elapsed_ms, 1),
-        "model": model,
-        "input_tokens": getattr(usage, "input_tokens", None) if usage else None,
+        "elapsed_ms": round(elapsed_ms, 1), "model": model,
+        "input_tokens":  getattr(usage, "input_tokens", None)  if usage else None,
         "output_tokens": getattr(usage, "output_tokens", None) if usage else None,
-        "cache_creation_input_tokens": getattr(usage, "cache_creation_input_tokens", None) if usage else None,
-        "cache_read_input_tokens": getattr(usage, "cache_read_input_tokens", None) if usage else None,
-        "raw_chars": len(text),
         "parsed_ok": bool(parsed),
     }
     return parsed, meta
+
+
+async def predict_openai(client, model: str, user_text: str) -> tuple[dict, dict]:
+    t0 = time.perf_counter()
+    resp = await client.chat.completions.create(
+        model=model,
+        max_tokens=2000,
+        messages=[
+            {"role": "system", "content": SYSTEM_PROMPT},
+            {"role": "user", "content": f"Extract structured medical data from the following text:\n\n---\n{user_text}\n---"},
+        ],
+        response_format={"type": "json_object"},
+    )
+    elapsed_ms = (time.perf_counter() - t0) * 1000
+    text = resp.choices[0].message.content or ""
+    parsed = _safe_parse_json(text)
+    usage = getattr(resp, "usage", None)
+    meta = {
+        "elapsed_ms": round(elapsed_ms, 1), "model": model,
+        "input_tokens":  getattr(usage, "prompt_tokens", None)     if usage else None,
+        "output_tokens": getattr(usage, "completion_tokens", None) if usage else None,
+        "parsed_ok": bool(parsed),
+    }
+    return parsed, meta
+
+
+async def predict_gemini(genai, model_name: str, user_text: str) -> tuple[dict, dict]:
+    import asyncio as _aio
+    loop = _aio.get_event_loop()
+    t0 = time.perf_counter()
+    def _do():
+        m = genai.GenerativeModel(model_name, system_instruction=SYSTEM_PROMPT,
+            generation_config={"response_mime_type": "application/json", "max_output_tokens": 2000})
+        return m.generate_content(
+            f"Extract structured medical data from the following text:\n\n---\n{user_text}\n---"
+        )
+    resp = await loop.run_in_executor(None, _do)
+    elapsed_ms = (time.perf_counter() - t0) * 1000
+    text = getattr(resp, "text", "") or ""
+    parsed = _safe_parse_json(text)
+    um = getattr(resp, "usage_metadata", None)
+    meta = {
+        "elapsed_ms": round(elapsed_ms, 1), "model": model_name,
+        "input_tokens":  getattr(um, "prompt_token_count", None)     if um else None,
+        "output_tokens": getattr(um, "candidates_token_count", None) if um else None,
+        "parsed_ok": bool(parsed),
+    }
+    return parsed, meta
+
+
+def _provider_for(model: str) -> str:
+    if model.startswith("claude"): return "anthropic"
+    if model.startswith("gpt"):     return "openai"
+    if model.startswith("gemini"):  return "gemini"
+    raise SystemExit(f"unknown provider for model {model!r}")
+
+
+def _approx_cost(provider: str, model: str, tin: int, tout: int) -> float:
+    # Rough list prices in $/Mtok as of mid-2026; close enough for an
+    # eval cost estimate. Real billing uses provider invoices.
+    rates = {
+        ("anthropic", "haiku"):  (1.0,  5.0),
+        ("anthropic", "sonnet"): (3.0, 15.0),
+        ("openai",    "gpt-4.1"): (2.0,  8.0),
+        ("openai",    "gpt-4.1-mini"): (0.4, 1.6),
+        ("gemini",    "flash"):  (0.0,  0.0),   # free tier
+        ("gemini",    "pro"):    (0.0,  0.0),
+    }
+    key = "haiku" if "haiku" in model else \
+          "sonnet" if "sonnet" in model else \
+          "gpt-4.1-mini" if "mini" in model else \
+          "gpt-4.1" if "gpt-4.1" in model else \
+          "flash" if "flash" in model else "pro"
+    r_in, r_out = rates.get((provider, key), (0.0, 0.0))
+    return tin / 1e6 * r_in + tout / 1e6 * r_out
 
 
 async def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--out", default="backend/app/eval/predictions_live.json")
     ap.add_argument("--model", default="claude-haiku-4-5",
-                    help="Anthropic model id. Defaults to claude-haiku-4-5 (hot-path).")
+                    help="Model id. Provider inferred from prefix (claude-/gpt-/gemini-).")
     ap.add_argument("--limit", type=int, default=None,
                     help="Only run the first N gold examples (cost-control).")
     args = ap.parse_args()
@@ -128,15 +197,26 @@ async def main():
     if env_path.exists():
         load_dotenv(env_path, override=True)
         print(f"loaded {env_path}")
-    else:
-        print(f"no .env at {env_path}")
-    key = os.environ.get("ANTHROPIC_API_KEY")
-    if not key:
-        print("ANTHROPIC_API_KEY missing. Set it in .env first.")
-        sys.exit(1)
 
-    from anthropic import AsyncAnthropic
-    client = AsyncAnthropic(api_key=key)
+    provider = _provider_for(args.model)
+    client = None
+    genai = None
+    if provider == "anthropic":
+        key = os.environ.get("ANTHROPIC_API_KEY")
+        if not key: sys.exit("ANTHROPIC_API_KEY missing")
+        from anthropic import AsyncAnthropic
+        client = AsyncAnthropic(api_key=key)
+    elif provider == "openai":
+        key = os.environ.get("OPENAI_API_KEY")
+        if not key: sys.exit("OPENAI_API_KEY missing")
+        from openai import AsyncOpenAI
+        client = AsyncOpenAI(api_key=key)
+    elif provider == "gemini":
+        key = os.environ.get("GEMINI_API_KEY")
+        if not key: sys.exit("GEMINI_API_KEY missing")
+        import google.generativeai as gen
+        gen.configure(api_key=key)
+        genai = gen
 
     examples = EXTRACTION_GOLD if args.limit is None else EXTRACTION_GOLD[:args.limit]
     predictions: dict[str, dict] = {}
@@ -144,18 +224,22 @@ async def main():
     total_in = total_out = 0
     failed: list[str] = []
 
-    print(f"Running {len(examples)} examples against {args.model} …")
+    print(f"Running {len(examples)} examples against {args.model} (provider={provider}) …")
     for i, ex in enumerate(examples, 1):
         if ex.modality in ("image",):
-            # Skip vision-only examples — the hot-path text extractor can't see them.
-            # A separate live_vision.py would run vision_clinical_extract instead.
             print(f"  [{i:2}/{len(examples)}] {ex.id:30s}  SKIP (vision-only)")
             predictions[ex.id] = {}
             continue
 
-        text = ex.input
         try:
-            pred, meta = await predict_one(client, args.model, text)
+            if provider == "anthropic":
+                pred, meta = await predict_anthropic(client, args.model, ex.input)
+            elif provider == "openai":
+                pred, meta = await predict_openai(client, args.model, ex.input)
+            else:
+                # Gemini free tier is 10 RPM — throttle so we don't 429.
+                pred, meta = await predict_gemini(genai, args.model, ex.input)
+                await asyncio.sleep(7)
             predictions[ex.id] = pred
             meta_per[ex.id] = meta
             total_in += (meta.get("input_tokens") or 0)
@@ -166,23 +250,24 @@ async def main():
         except Exception as e:
             failed.append(f"{ex.id}: {e}")
             predictions[ex.id] = {}
-            print(f"  [{i:2}/{len(examples)}] {ex.id:30s}  FAIL  {e}")
+            print(f"  [{i:2}/{len(examples)}] {ex.id:30s}  FAIL  {str(e)[:120]}")
 
     out_path = Path(args.out)
     out_path.parent.mkdir(parents=True, exist_ok=True)
+    cost = _approx_cost(provider, args.model, total_in, total_out)
     out_path.write_text(json.dumps({
         "model": args.model,
+        "provider": provider,
         "n": len(examples),
         "total_input_tokens": total_in,
         "total_output_tokens": total_out,
+        "approx_cost_usd": cost,
         "failed": failed,
         "meta": meta_per,
         "predictions": predictions,
     }, indent=2))
     print(f"\nWrote {out_path}")
     print(f"Total tokens: {total_in} in, {total_out} out")
-    # Claude Haiku 4.5 list price ~ $1.00 / Mtok in, $5.00 / Mtok out (approx).
-    cost = total_in / 1e6 * 1.00 + total_out / 1e6 * 5.00
     print(f"Approx cost: ${cost:.4f}")
 
 

@@ -2,7 +2,20 @@ import { useEffect, useState } from "react";
 import clsx from "clsx";
 import { Card, StatTile } from "../components/Card";
 
-type ModelKey = "haiku" | "sonnet";
+type ModelKey = string; // "haiku" | "sonnet" | "gpt" | "gemini"
+
+// Per-million-token list prices we use everywhere (input, output).
+const PROVIDER_RATES: Record<string, [number, number]> = {
+  haiku:  [1.0,   5.0],
+  sonnet: [3.0,  15.0],
+  gpt:    [2.0,   8.0],
+  gemini: [0.075, 0.30],
+};
+function costFor(label: ModelKey, source: any): number {
+  const [inRate, outRate] = PROVIDER_RATES[label] || [1.0, 5.0];
+  return ((source?.total_input_tokens || 0) / 1e6) * inRate
+       + ((source?.total_output_tokens || 0) / 1e6) * outRate;
+}
 
 /**
  * Benchmarks page. Fetches /eval-latest.json (built by
@@ -32,27 +45,37 @@ export default function BenchmarksPage() {
   if (!data) return <div className="skel h-32" />;
 
   const comparison = !!data.models;
-  const e = comparison ? data.models[model].extraction : data.extraction;
-  const source = comparison ? data.models[model].source : null;
-  const r = data.rag, c = data.consensus, p = data.pii, l = data.latency, ch = data.chat, meta = data.meta;
+  // If the selected model isn't present (e.g. old bookmark with "haiku" on a
+  // run that only has gpt+gemini), fall back to the first available.
+  const firstModel: ModelKey = comparison ? Object.keys(data.models)[0] : "haiku";
+  const activeModel: ModelKey = comparison && data.models[model] ? model : firstModel;
+  const e = comparison ? data.models[activeModel].extraction : data.extraction;
+  const source = comparison ? data.models[activeModel].source : null;
+  const r = data.rag, p = data.pii, l = data.latency, meta = data.meta;
+  // Prefer the live versions when present; keep synth as a fallback for compat.
+  const ch = data.chat_live || data.chat;
+  const chIsLive = !!data.chat_live;
+  const c = data.consensus_live || data.consensus;
+  const cIsLive = !!data.consensus_live;
+  const interactions = data.interactions;
 
   return (
     <div className="space-y-7">
       <Header meta={meta} comparison={comparison} />
 
       {comparison && (
-        <ModelToggle models={data.models} current={model} onChange={setModel} />
+        <ModelToggle models={data.models} current={activeModel} onChange={setModel} />
       )}
 
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        <StatTile label={`${labelOf(data, model)} F1`} value={fmtPct(e.micro_f1)} hint="micro · all sections" accent="good" />
+        <StatTile label={`${labelOf(data, activeModel)} F1`} value={fmtPct(e.micro_f1)} hint="micro · all sections" accent="good" />
         <StatTile label="RAG MRR"        value={r.mrr.toFixed(3)} hint={`recall@5 ${fmtPct(rk(r,5))}`} accent="info" />
         <StatTile label="PII recall"     value={fmtPct(p.scrub_recall)} hint={`${meta.n_pii_cases} cases · all classes`} accent="good" />
-        <StatTile label="Chat groundedness" value={fmtPct(ch.answer_correctness)} hint={`${ch.n_probes} probes`} accent="accent" />
+        <StatTile label="Chat groundedness" value={fmtPct(ch.answer_correctness)} hint={`${ch.n_probes} probes${chIsLive ? " · live" : ""}`} accent="accent" />
       </div>
 
-      <Section title={`1. Extraction quality — ${labelOf(data, model)}`} eyebrow="Per-section P/R/F1">
-        {source && <SourceStrip source={source} model={model} />}
+      <Section title={`1. Extraction quality — ${labelOf(data, activeModel)}`} eyebrow="Per-section P/R/F1">
+        {source && <SourceStrip source={source} model={activeModel} />}
         <table className="w-full text-sm">
           <thead>
             <tr className="text-[10.5px] uppercase tracking-[0.14em] text-ink-300 font-semibold">
@@ -99,14 +122,15 @@ export default function BenchmarksPage() {
       </Section>
 
       {comparison && (
-        <Section title="Head-to-head" eyebrow="Same gold set, two models">
+        <Section title="Head-to-head" eyebrow={`Same gold set · ${Object.keys(data.models).length} models`}>
+          <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
               <tr className="text-[10.5px] uppercase tracking-[0.14em] text-ink-300 font-semibold">
                 <th className="text-left py-2 px-2">Metric</th>
-                <th className="text-right py-2 px-2">{data.models.haiku.label}</th>
-                <th className="text-right py-2 px-2">{data.models.sonnet.label}</th>
-                <th className="text-right py-2 px-2">Δ (Sonnet − Haiku)</th>
+                {Object.entries<any>(data.models).map(([k, m]: any) => (
+                  <th key={k} className="text-right py-2 px-2 whitespace-nowrap">{m.label}</th>
+                ))}
               </tr>
             </thead>
             <tbody className="divide-y divide-ink-700">
@@ -117,31 +141,42 @@ export default function BenchmarksPage() {
                 ["Schema validity", "schema_valid", true],
                 ["Hallucination (lower better)", "hallucination", false],
               ] as [string, string, boolean][]).map(([label, key, higherIsBetter]) => {
-                const a = data.models.haiku.extraction[key];
-                const b = data.models.sonnet.extraction[key];
-                const delta = b - a;
-                const positive = higherIsBetter ? delta > 0 : delta < 0;
+                const values = Object.entries<any>(data.models).map(([k, m]: any) => [k, m.extraction[key]]);
+                // Find best for tinting
+                const nums = values.map(([, v]) => v as number);
+                const best = higherIsBetter ? Math.max(...nums) : Math.min(...nums);
                 return (
                   <tr key={key} className="text-[13px]">
                     <td className="py-2 px-2 text-ink-100">{label}</td>
-                    <td className="py-2 px-2 text-right num font-mono">{fmtPct(a)}</td>
-                    <td className="py-2 px-2 text-right num font-mono">{fmtPct(b)}</td>
-                    <td className={clsx("py-2 px-2 text-right num font-mono font-semibold",
-                          Math.abs(delta) < 0.001 ? "text-ink-300"
-                          : positive ? "text-good-deep" : "text-alert-deep")}>
-                      {delta > 0 ? "+" : ""}{(delta * 100).toFixed(1)} pts
-                    </td>
+                    {values.map(([k, v]: any) => {
+                      const isBest = Math.abs((v as number) - best) < 1e-6;
+                      return (
+                        <td key={k as string} className={clsx(
+                          "py-2 px-2 text-right num font-mono",
+                          isBest ? "font-semibold text-good-deep" : "text-ink-100"
+                        )}>{fmtPct(v as number)}</td>
+                      );
+                    })}
                   </tr>
                 );
               })}
-              {/* Cost row */}
-              <CostRow data={data} />
+              {/* Cost row — dollars per full 30-example pass on each model. */}
+              <tr className="text-[13px]">
+                <td className="py-2 px-2 text-ink-100">Cost per pass (USD)</td>
+                {Object.entries<any>(data.models).map(([k, m]: any) => (
+                  <td key={k} className="py-2 px-2 text-right num font-mono text-warn-deep">
+                    ${costFor(k, m.source).toFixed(4)}
+                  </td>
+                ))}
+              </tr>
             </tbody>
           </table>
+          </div>
           <p className="text-[12px] text-ink-300 mt-4 leading-relaxed">
-            Both models were scored against the same 30-example gold set using the identical prompt and scorer.
-            Sonnet's input tokens cost 3× Haiku and output 3× as well — so a Sonnet pass is ~3× the dollar amount for a marginal F1 lift.
-            That's why Folio routes the hot path through Haiku and reserves Sonnet for the High-confidence multi-LLM consensus mode.
+            All models were scored against the same {meta.n_extraction_examples}-example gold set with the identical prompt and scorer.
+            Sonnet input tokens cost 3× Haiku and output cost 3× — a Sonnet pass is ~3× the dollar for a marginal F1 lift on this corpus.
+            That's why Folio routes the hot path through Haiku, reserves Sonnet for the high-confidence consensus path,
+            and uses the same scorer to compare against OpenAI{data.models.gemini ? " and Google" : ""} as a cross-vendor sanity check.
           </p>
         </Section>
       )}
@@ -163,21 +198,65 @@ export default function BenchmarksPage() {
         </p>
       </Section>
 
-      <Section title="3. Multi-LLM consensus" eyebrow="3-model ensemble">
+      <Section title="3. Multi-LLM consensus" eyebrow={cIsLive ? "3-model live ensemble" : "3-model simulated ensemble"}>
+        {cIsLive && (
+          <div className="flex flex-wrap gap-1.5 mb-4">
+            <span className="chip">Live · {c.n_examples_scored} examples</span>
+            {c.models && Object.entries<string>(c.models).map(([k, v]) => (
+              <span key={k} className="chip font-mono">{k}: {v}</span>
+            ))}
+          </div>
+        )}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
           <Mini label="Unanimous (3/3)" value={fmtPct(c.unanimous_rate)} tone="info" />
           <Mini label="Convergence (≥2/3)" value={fmtPct(c.convergence_rate)} tone="good" />
           <Mini label="Cluster correctness" value={fmtPct(c.cluster_correctness)} tone={tone(c.cluster_correctness, 0.95, 0.8)} />
-          <Mini label="Recall lift" value={`+${fmtPct(c.high_conf_recall_lift)}`} tone="accent" />
+          {cIsLive
+            ? <Mini label="Fleiss κ (3 raters)" value={(c.fleiss_kappa ?? 0).toFixed(3)} tone="info" />
+            : <Mini label="Recall lift" value={`+${fmtPct(c.high_conf_recall_lift || 0)}`} tone="accent" />}
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           <Mini label="Mean single-model recall" value={fmtPct(c.mean_single_recall)} />
-          <Mini label="Consensus recall" value={fmtPct(c.consensus_recall)} tone="accent" />
-          <Mini label="Cost ratio (vs single)" value={`${c.cost_ratio.toFixed(1)}×`} tone="warn" />
+          <Mini label="Consensus recall (≥2/3)" value={fmtPct(c.consensus_recall)} tone="accent" />
+          {cIsLive
+            ? <Mini label="Consensus F1" value={fmtPct(c.consensus_f1 || 0)} tone="good" />
+            : <Mini label="Cost ratio (vs single)" value={`${(c.cost_ratio || 0).toFixed(1)}×`} tone="warn" />}
         </div>
+        {cIsLive && (
+          <p className="text-[12px] text-ink-300 mt-4 leading-relaxed">
+            Each example was extracted by three vendors (Anthropic Haiku, Anthropic Sonnet, OpenAI GPT-4.1).
+            Field-level outputs are clustered by OpenAI text-embedding-3-small similarity (cosine ≥ 0.78),
+            then a ≥2/3 vote keeps only the agreed-on facts. The Fleiss κ statistic measures inter-rater agreement
+            beyond chance — a near-zero value here means models agree often <span className="italic">but mostly on easy facts</span>,
+            which is expected at this gold-set size.
+          </p>
+        )}
       </Section>
 
-      <Section title="4. PII scrubbing" eyebrow="Privacy guarantees">
+      {interactions && (
+        <Section title="4. Drug-interaction safety net" eyebrow="Curated DB · not LLM">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
+            <Mini label="Precision" value={fmtPct(interactions.precision)} tone={tone(interactions.precision, 0.95, 0.8)} />
+            <Mini label="Recall"    value={fmtPct(interactions.recall)}    tone={tone(interactions.recall,    0.95, 0.8)} />
+            <Mini label="F1"        value={fmtPct(interactions.f1)}        tone="good" />
+            <Mini label="Exact-set accuracy" value={fmtPct(interactions.accuracy)} tone={tone(interactions.accuracy, 0.95, 0.8)} />
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <Mini label="Cases"            value={interactions.n_cases.toString()} />
+            <Mini label="True positives"   value={interactions.tp.toString()} tone="good" />
+            <Mini label="False positives"  value={interactions.fp.toString()} tone={interactions.fp ? "alert" : "good"} />
+            <Mini label="False negatives"  value={interactions.fn.toString()} tone={interactions.fn ? "alert" : "good"} />
+          </div>
+          <p className="text-[12px] text-ink-300 mt-4 leading-relaxed">
+            Drug-interaction flags are looked up in a curated table — never written by an LLM — exactly because
+            LLMs hallucinate dosages and severities. The same lookup the production suggestions engine uses is
+            tested here against {interactions.n_cases} hand-authored cases covering positives, negatives,
+            multi-pair regimens, duplicates and case variations.
+          </p>
+        </Section>
+      )}
+
+      <Section title="5. PII scrubbing" eyebrow="Privacy guarantees">
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-4">
           <Mini label="Scrub recall"        value={fmtPct(p.scrub_recall)} tone={tone(p.scrub_recall, 0.99, 0.9)} />
           <Mini label="Content preservation" value={fmtPct(p.content_preservation)} tone={tone(p.content_preservation, 0.99, 0.9)} />
@@ -203,16 +282,46 @@ export default function BenchmarksPage() {
         </table>
       </Section>
 
-      <Section title="5. Chat groundedness" eyebrow="Truthfulness checks">
+      <Section title="6. Chat groundedness" eyebrow={chIsLive ? `Live · Claude Sonnet 4.5 · ${ch.n_probes} probes` : "Truthfulness checks"}>
+        {chIsLive && (
+          <div className="flex flex-wrap gap-1.5 mb-4">
+            <span className="chip">Live model: <span className="font-mono ml-1">{ch.model}</span></span>
+            <span className="chip">RAG: top-4 over gold corpus</span>
+            <span className="chip">Red-flag probe included</span>
+          </div>
+        )}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           <Mini label="Answer correctness"    value={fmtPct(ch.answer_correctness)} tone="good" />
           <Mini label="Citation correctness"  value={fmtPct(ch.citation_correctness)} tone="good" />
           <Mini label="Red-flag escalation"   value={fmtPct(ch.red_flag_recall)} tone="alert" />
           <Mini label="Hallucination guard"   value={fmtPct(ch.hallucination_guard)} tone="good" />
         </div>
+        {chIsLive && ch.per_probe && (
+          <div className="mt-5 space-y-3">
+            {ch.per_probe.map((row: any, i: number) => (
+              <div key={i} className="rounded-xl border border-ink-700 bg-white p-3">
+                <div className="flex items-center gap-2 mb-1.5 flex-wrap">
+                  <span className="text-[10.5px] uppercase tracking-[0.14em] text-ink-300 font-semibold">Probe {i + 1}</span>
+                  <span className={clsx("text-[10.5px] font-mono px-1.5 py-0.5 rounded",
+                    row.contains_any && row.must_cite_ok && row.avoid_ok ? "bg-good-soft text-good-deep" : "bg-alert-soft text-alert-deep")}>
+                    {row.contains_any && row.must_cite_ok && row.avoid_ok ? "PASS" : "FAIL"}
+                  </span>
+                  {row.is_red_flag_probe && (
+                    <span className={clsx("text-[10.5px] font-mono px-1.5 py-0.5 rounded",
+                      row.red_flag_hit ? "bg-alert-soft text-alert-deep" : "bg-warn-soft text-warn-deep")}>
+                      red-flag · escalation {row.red_flag_hit ? "fired" : "missed"}
+                    </span>
+                  )}
+                </div>
+                <div className="text-[13px] text-ink-100 italic">"{row.question}"</div>
+                <div className="text-[12.5px] text-ink-200 mt-1.5 leading-relaxed">{row.reply}</div>
+              </div>
+            ))}
+          </div>
+        )}
       </Section>
 
-      <Section title="6. Latency" eyebrow="Per-stage distribution">
+      <Section title="7. Latency" eyebrow="Per-stage distribution">
         <table className="w-full text-sm">
           <thead>
             <tr className="text-[10.5px] uppercase tracking-[0.14em] text-ink-300 font-semibold">
@@ -285,6 +394,9 @@ function Header({ meta, comparison }: { meta: any; comparison: boolean }) {
         <span className="chip">{meta.n_rag_queries} RAG queries</span>
         <span className="chip">{meta.n_pii_cases} PII cases</span>
         <span className="chip">{meta.n_chat_probes} chat probes</span>
+        {meta.providers && (
+          <span className="chip font-mono">{(meta.providers as string[]).join(" · ")}</span>
+        )}
       </div>
     </div>
   );
@@ -330,11 +442,7 @@ function ModelToggle({ models, current, onChange }: {
 }
 
 function SourceStrip({ source, model }: { source: any; model: ModelKey }) {
-  // Anthropic list prices (approximate): Haiku 4.5 $1/$5 per Mtok, Sonnet 4.5 $3/$15.
-  const inRate  = model === "haiku" ? 1.0 : 3.0;
-  const outRate = model === "haiku" ? 5.0 : 15.0;
-  const cost = ((source.total_input_tokens || 0) / 1e6) * inRate
-             + ((source.total_output_tokens || 0) / 1e6) * outRate;
+  const cost = costFor(model, source);
   return (
     <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-5 text-[11px]">
       <span className="chip font-mono">{source.model}</span>
@@ -342,25 +450,6 @@ function SourceStrip({ source, model }: { source: any; model: ModelKey }) {
       <span className="chip font-mono num">{source.total_input_tokens?.toLocaleString()} in / {source.total_output_tokens?.toLocaleString()} out</span>
       <span className="chip font-mono num">${cost.toFixed(4)}</span>
     </div>
-  );
-}
-
-function CostRow({ data }: { data: any }) {
-  const cost = (label: ModelKey, inRate: number, outRate: number) => {
-    const s = data.models[label].source;
-    return ((s.total_input_tokens || 0) / 1e6) * inRate
-         + ((s.total_output_tokens || 0) / 1e6) * outRate;
-  };
-  const haikuCost  = cost("haiku",  1.0,  5.0);
-  const sonnetCost = cost("sonnet", 3.0, 15.0);
-  const ratio = sonnetCost / Math.max(haikuCost, 1e-9);
-  return (
-    <tr className="text-[13px]">
-      <td className="py-2 px-2 text-ink-100">Cost per pass (USD)</td>
-      <td className="py-2 px-2 text-right num font-mono">${haikuCost.toFixed(4)}</td>
-      <td className="py-2 px-2 text-right num font-mono">${sonnetCost.toFixed(4)}</td>
-      <td className="py-2 px-2 text-right num font-mono font-semibold text-warn-deep">{ratio.toFixed(1)}×</td>
-    </tr>
   );
 }
 

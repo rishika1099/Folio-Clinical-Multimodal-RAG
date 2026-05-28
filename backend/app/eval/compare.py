@@ -90,20 +90,36 @@ def _score_model(label: str, raw: dict) -> dict:
 
 async def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--haiku",  required=True, help="Predictions JSON for the fast model.")
-    ap.add_argument("--sonnet", required=True, help="Predictions JSON for the strong model.")
+    ap.add_argument("--haiku",  required=True, help="Predictions JSON for the fast Anthropic model.")
+    ap.add_argument("--sonnet", required=True, help="Predictions JSON for the strong Anthropic model.")
+    ap.add_argument("--gpt",    default=None, help="Optional predictions JSON for an OpenAI model.")
+    ap.add_argument("--gemini", default=None, help="Optional predictions JSON for a Google model.")
+    ap.add_argument("--interactions",  default=None, help="Drug-interactions eval JSON (from evaluate_interactions()).")
+    ap.add_argument("--consensus-live", default=None, help="Live 3-model consensus JSON.")
+    ap.add_argument("--chat-live",      default=None, help="Live chat groundedness JSON (replaces synth chat).")
     ap.add_argument("--out",    required=True, help="Where to write the combined report JSON.")
     ap.add_argument("--live-embed", action="store_true")
     args = ap.parse_args()
 
-    haiku_raw = _load(args.haiku)
+    haiku_raw  = _load(args.haiku)
     sonnet_raw = _load(args.sonnet)
+    gpt_raw    = _load(args.gpt)    if args.gpt    else None
+    gemini_raw = _load(args.gemini) if args.gemini else None
 
     rag = await evaluate_rag(use_live_embeddings=args.live_embed)
-    consensus = evaluate_consensus()
+    consensus_simulated = evaluate_consensus()
     pii = evaluate_pii()
     latency = await evaluate_latency()
-    chat = evaluate_chat()
+    chat_synth = evaluate_chat()
+
+    models: dict[str, dict] = {
+        "haiku":  _score_model("Claude Haiku 4.5", haiku_raw),
+        "sonnet": _score_model("Claude Sonnet 4.5", sonnet_raw),
+    }
+    if gpt_raw is not None:
+        models["gpt"] = _score_model("OpenAI GPT-4.1", gpt_raw)
+    if gemini_raw is not None:
+        models["gemini"] = _score_model("Google Gemini 2.5 Flash", gemini_raw)
 
     out = {
         "meta": {
@@ -115,17 +131,28 @@ async def main():
             "modality_counts": all_modality_counts(),
             "live_embed": args.live_embed,
             "comparison": True,
+            "providers": sorted(set(
+                ["anthropic"]
+                + (["openai"] if gpt_raw is not None else [])
+                + (["google"] if gemini_raw is not None else [])
+            )),
         },
-        "models": {
-            "haiku":  _score_model("Claude Haiku 4.5", haiku_raw),
-            "sonnet": _score_model("Claude Sonnet 4.5", sonnet_raw),
-        },
+        "models": models,
         "rag": _serialisable(rag),
-        "consensus": _serialisable(consensus),
+        "consensus": _serialisable(consensus_simulated),
         "pii": _serialisable(pii),
         "latency": _serialisable(latency),
-        "chat": _serialisable(chat),
+        "chat": _serialisable(chat_synth),
     }
+
+    # Optional live-data overlays.
+    if args.interactions:
+        out["interactions"] = _load(args.interactions)
+    if args.consensus_live:
+        out["consensus_live"] = _load(args.consensus_live)
+    if args.chat_live:
+        # Surface as `chat_live`; UI prefers it over `chat` (synth) when present.
+        out["chat_live"] = _load(args.chat_live)
 
     Path(args.out).parent.mkdir(parents=True, exist_ok=True)
     Path(args.out).write_text(json.dumps(out, indent=2, default=str))
@@ -133,14 +160,21 @@ async def main():
 
     # Print a quick comparison summary to stdout.
     print()
-    for label in ("haiku", "sonnet"):
+    rates = {
+        "haiku":  (1.0, 5.0),
+        "sonnet": (3.0, 15.0),
+        "gpt":    (2.0, 8.0),       # rough GPT-4.1 list
+        "gemini": (0.075, 0.30),    # Gemini 2.5 Flash list
+    }
+    for label in out["models"].keys():
         e = out["models"][label]["extraction"]
         s = out["models"][label]["source"]
-        cost = (s["total_input_tokens"] or 0) / 1e6 * (1.0 if label == "haiku" else 3.0) \
-             + (s["total_output_tokens"] or 0) / 1e6 * (5.0 if label == "haiku" else 15.0)
-        print(f"{label:6s}  micro-F1 {e['micro_f1']*100:5.1f}%  macro-F1 {e['macro_f1']*100:5.1f}%  "
+        in_rate, out_rate = rates.get(label, (1.0, 5.0))
+        cost = (s.get("total_input_tokens") or 0) / 1e6 * in_rate \
+             + (s.get("total_output_tokens") or 0) / 1e6 * out_rate
+        print(f"{label:7s} micro-F1 {e['micro_f1']*100:5.1f}%  macro-F1 {e['macro_f1']*100:5.1f}%  "
               f"coverage {e['coverage']*100:5.1f}%  halluc {e['hallucination']*100:4.1f}%  "
-              f"tokens in={s['total_input_tokens']:>5} out={s['total_output_tokens']:>5}  ${cost:.4f}")
+              f"tokens in={s.get('total_input_tokens',0):>6} out={s.get('total_output_tokens',0):>6}  ${cost:.4f}")
 
 
 if __name__ == "__main__":

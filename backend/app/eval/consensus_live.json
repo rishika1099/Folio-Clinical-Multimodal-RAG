@@ -1,0 +1,193 @@
+{
+  "kind": "live",
+  "n_examples_scored": 28,
+  "models": {
+    "haiku": "claude-haiku-4-5",
+    "sonnet": "claude-sonnet-4-5",
+    "gpt-4.1": "gpt-4.1"
+  },
+  "fleiss_kappa": -0.1169,
+  "unanimous_rate": 0.6977,
+  "convergence_rate": 0.8721,
+  "cluster_correctness": 0.7558,
+  "mean_single_recall_per_model": {
+    "haiku": 0.9476,
+    "sonnet": 0.9399,
+    "gpt-4.1": 0.8928
+  },
+  "mean_single_recall": 0.9268,
+  "consensus_recall": 0.9083,
+  "consensus_f1": 0.83,
+  "high_conf_recall_lift": -0.0184,
+  "elapsed_ms": 79023.6,
+  "per_example": [
+    {
+      "id": "ex01_hypertension_followup",
+      "n_fields": 3,
+      "n_converged": 3,
+      "consensus_recall": 1.0
+    },
+    {
+      "id": "ex02_diabetes_panel",
+      "n_fields": 12,
+      "n_converged": 11,
+      "consensus_recall": 0.8
+    },
+    {
+      "id": "ex03_chest_pain_red_flag",
+      "n_fields": 7,
+      "n_converged": 7,
+      "consensus_recall": 0.8333333333333334
+    },
+    {
+      "id": "ex04_pdf_lab_only",
+      "n_fields": 3,
+      "n_converged": 3,
+      "consensus_recall": 0.75
+    },
+    {
+      "id": "ex05_voice_symptom",
+      "n_fields": 3,
+      "n_converged": 2,
+      "consensus_recall": 1.0
+    },
+    {
+      "id": "ex07_polypharmacy",
+      "n_fields": 7,
+      "n_converged": 6,
+      "consensus_recall": 1.0
+    },
+    {
+      "id": "ex08_pdf_discharge",
+      "n_fields": 7,
+      "n_converged": 7,
+      "consensus_recall": 1.0
+    },
+    {
+      "id": "ex10_stroke_red_flag",
+      "n_fields": 4,
+      "n_converged": 4,
+      "consensus_recall": 1.0
+    },
+    {
+      "id": "ex11_pediatric_vitals",
+      "n_fields": 4,
+      "n_converged": 4,
+      "consensus_recall": 1.0
+    },
+    {
+      "id": "ex12_complex_oncology",
+      "n_fields": 6,
+      "n_converged": 5,
+      "consensus_recall": 1.0
+    },
+    {
+      "id": "ex13_thyroid_followup",
+      "n_fields": 5,
+      "n_converged": 5,
+      "consensus_recall": 0.75
+    },
+    {
+      "id": "ex14_med_change",
+      "n_fields": 7,
+      "n_converged": 6,
+      "consensus_recall": 0.8333333333333334
+    },
+    {
+      "id": "ex15_ct_chest",
+      "n_fields": 4,
+      "n_converged": 3,
+      "consensus_recall": 1.0
+    },
+    {
+      "id": "ex16_asthma_flare",
+      "n_fields": 9,
+      "n_converged": 7,
+      "consensus_recall": 0.8
+    },
+    {
+      "id": "ex17_echo_report",
+      "n_fields": 5,
+      "n_converged": 5,
+      "consensus_recall": 1.0
+    },
+    {
+      "id": "ex18_back_pain_voice",
+      "n_fields": 4,
+      "n_converged": 4,
+      "consensus_recall": 0.5
+    },
+    {
+      "id": "ex19_migraine_history",
+      "n_fields": 8,
+      "n_converged": 5,
+      "consensus_recall": 1.0
+    },
+    {
+      "id": "ex20_psychiatry_visit",
+      "n_fields": 9,
+      "n_converged": 6,
+      "consensus_recall": 1.0
+    },
+    {
+      "id": "ex21_lipid_followup",
+      "n_fields": 4,
+      "n_converged": 3,
+      "consensus_recall": 0.5
+    },
+    {
+      "id": "ex22_anaphylaxis_voice",
+      "n_fields": 9,
+      "n_converged": 7,
+      "consensus_recall": 1.0
+    },
+    {
+      "id": "ex23_ra_visit",
+      "n_fields": 8,
+      "n_converged": 7,
+      "consensus_recall": 1.0
+    },
+    {
+      "id": "ex24_uti",
+      "n_fields": 10,
+      "n_converged": 9,
+      "consensus_recall": 0.6666666666666666
+    },
+    {
+      "id": "ex25_smoking_cessation",
+      "n_fields": 5,
+      "n_converged": 5,
+      "consensus_recall": 1.0
+    },
+    {
+      "id": "ex26_sleep_apnea",
+      "n_fields": 8,
+      "n_converged": 6,
+      "consensus_recall": 1.0
+    },
+    {
+      "id": "ex27_vision_loss_voice",
+      "n_fields": 3,
+      "n_converged": 3,
+      "consensus_recall": 1.0
+    },
+    {
+      "id": "ex28_pneumonia_chest_xray",
+      "n_fields": 3,
+      "n_converged": 3,
+      "consensus_recall": 1.0
+    },
+    {
+      "id": "ex29_pregnancy_routine",
+      "n_fields": 6,
+      "n_converged": 6,
+      "consensus_recall": 1.0
+    },
+    {
+      "id": "ex30_chronic_kidney",
+      "n_fields": 9,
+      "n_converged": 8,
+      "consensus_recall": 1.0
+    }
+  ]
+}

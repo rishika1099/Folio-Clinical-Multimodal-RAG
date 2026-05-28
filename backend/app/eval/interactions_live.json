@@ -1,0 +1,238 @@
+{
+  "n_cases": 17,
+  "tp": 12,
+  "fp": 0,
+  "fn": 0,
+  "precision": 1.0,
+  "recall": 1.0,
+  "f1": 1.0,
+  "accuracy": 1.0,
+  "n_total_pairs_expected": 12,
+  "n_total_pairs_predicted": 12,
+  "per_case": [
+    {
+      "meds": [
+        "Warfarin 5mg",
+        "Aspirin 81mg",
+        "Lisinopril 10mg"
+      ],
+      "expected": [
+        "aspirin+warfarin"
+      ],
+      "predicted": [
+        "aspirin+warfarin"
+      ],
+      "ok": true,
+      "note": "Classic bleeding-risk pair"
+    },
+    {
+      "meds": [
+        "Warfarin",
+        "Ibuprofen",
+        "Metformin"
+      ],
+      "expected": [
+        "ibuprofen+warfarin"
+      ],
+      "predicted": [
+        "ibuprofen+warfarin"
+      ],
+      "ok": true,
+      "note": "NSAID + warfarin"
+    },
+    {
+      "meds": [
+        "Lisinopril",
+        "Spironolactone",
+        "Atorvastatin"
+      ],
+      "expected": [
+        "lisinopril+spironolactone"
+      ],
+      "predicted": [
+        "lisinopril+spironolactone"
+      ],
+      "ok": true,
+      "note": "Hyperkalemia risk"
+    },
+    {
+      "meds": [
+        "Simvastatin",
+        "Clarithromycin",
+        "Metformin"
+      ],
+      "expected": [
+        "clarithromycin+simvastatin"
+      ],
+      "predicted": [
+        "clarithromycin+simvastatin"
+      ],
+      "ok": true,
+      "note": "CYP3A4 inhibition \u2192 statin levels"
+    },
+    {
+      "meds": [
+        "Metoprolol",
+        "Verapamil",
+        "Aspirin"
+      ],
+      "expected": [
+        "metoprolol+verapamil"
+      ],
+      "predicted": [
+        "metoprolol+verapamil"
+      ],
+      "ok": true,
+      "note": "Bradycardia / heart block"
+    },
+    {
+      "meds": [
+        "Clopidogrel",
+        "Omeprazole",
+        "Atorvastatin"
+      ],
+      "expected": [
+        "clopidogrel+omeprazole"
+      ],
+      "predicted": [
+        "clopidogrel+omeprazole"
+      ],
+      "ok": true,
+      "note": "CYP2C19 reduces clopidogrel activation"
+    },
+    {
+      "meds": [
+        "Warfarin",
+        "Aspirin",
+        "Ibuprofen",
+        "Lisinopril"
+      ],
+      "expected": [
+        "aspirin+warfarin",
+        "ibuprofen+warfarin"
+      ],
+      "predicted": [
+        "aspirin+warfarin",
+        "ibuprofen+warfarin"
+      ],
+      "ok": true,
+      "note": "Two warfarin interactions"
+    },
+    {
+      "meds": [
+        "Lisinopril",
+        "Spironolactone",
+        "Potassium chloride"
+      ],
+      "expected": [
+        "lisinopril+potassium",
+        "lisinopril+spironolactone"
+      ],
+      "predicted": [
+        "lisinopril+potassium",
+        "lisinopril+spironolactone"
+      ],
+      "ok": true,
+      "note": "Double hyperkalemia hit"
+    },
+    {
+      "meds": [
+        "Lisinopril",
+        "Metformin",
+        "Atorvastatin"
+      ],
+      "expected": [],
+      "predicted": [],
+      "ok": true,
+      "note": "Standard cardiometabolic stack"
+    },
+    {
+      "meds": [
+        "Levothyroxine"
+      ],
+      "expected": [],
+      "predicted": [],
+      "ok": true,
+      "note": "Monotherapy"
+    },
+    {
+      "meds": [
+        "Sertraline",
+        "Sumatriptan"
+      ],
+      "expected": [],
+      "predicted": [],
+      "ok": true,
+      "note": "No interaction in our curated table"
+    },
+    {
+      "meds": [],
+      "expected": [],
+      "predicted": [],
+      "ok": true,
+      "note": "Empty list"
+    },
+    {
+      "meds": [
+        "Albuterol",
+        "Fluticasone",
+        "Montelukast"
+      ],
+      "expected": [],
+      "predicted": [],
+      "ok": true,
+      "note": "Asthma regimen, no interactions"
+    },
+    {
+      "meds": [
+        "Hydroxychloroquine",
+        "Methotrexate",
+        "Folate"
+      ],
+      "expected": [],
+      "predicted": [],
+      "ok": true,
+      "note": "RA regimen"
+    },
+    {
+      "meds": [
+        "Insulin glargine",
+        "Metformin",
+        "Empagliflozin"
+      ],
+      "expected": [],
+      "predicted": [],
+      "ok": true,
+      "note": "Diabetes regimen"
+    },
+    {
+      "meds": [
+        "Aspirin 325mg",
+        "ASPIRIN",
+        "warfarin"
+      ],
+      "expected": [
+        "aspirin+warfarin"
+      ],
+      "predicted": [
+        "aspirin+warfarin"
+      ],
+      "ok": true,
+      "note": "Duplicate + case insensitivity"
+    },
+    {
+      "meds": [
+        "Tramadol 50mg",
+        "SSRI sertraline"
+      ],
+      "expected": [
+        "ssri+tramadol"
+      ],
+      "predicted": [
+        "ssri+tramadol"
+      ],
+      "ok": true,
+      "note": "Serotonin syndrome \u2014 note SSRI noun matches"
+    }
+  ]
+}
