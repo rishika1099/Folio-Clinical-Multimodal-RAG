@@ -17,11 +17,14 @@ class Settings(BaseSettings):
     cors_origins: str = "*"
 
     # ─── Auth ──────────────────────────────────────────────────────────────
-    # Multi-user. Anyone can hit POST /api/auth/register unless
-    # allow_signup is set to False (lock the instance to existing users).
+    # Multi-user. Anyone can hit POST /api/auth/register only when
+    # allow_signup is True. Default is False so a fresh production instance
+    # never accidentally accepts strangers; flip it to True (env or .env)
+    # for local dev or once you've decided the instance is ready to
+    # accept new accounts.
     jwt_secret:   str = "dev-only-change-me-in-prod"
     jwt_ttl_days: int = 30
-    allow_signup: bool = True
+    allow_signup: bool = False
 
     extraction_timeout_s: float = 8.0
     suggestion_timeout_s: float = 20.0
